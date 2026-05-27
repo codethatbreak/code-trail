@@ -1,0 +1,78 @@
+---
+title: Find Eventual Safe States
+---
+
+### Core Definitions
+
+- **Terminal Node:** A node is terminal if it has **no outgoing edges**.
+- **Safe Node:** A node is safe if **every possible path** starting from it leads to a terminal node.
+- **The Goal:** Return an array of all safe nodes, sorted in **ascending order**.
+
+### Intuition: Working Backwards
+
+The BFS approach (Kahn's Algorithm) typically identifies nodes with an in-degree of 0. However, safe nodes are defined by their **out-degree** (specifically, leading to terminal nodes).
+
+- To bridge this gap, the algorithm **reverses all edges** in the graph.
+- By reversing the edges, a terminal node (out-degree 0) becomes a node with an **in-degree of 0**.
+- Starting from these terminal nodes, the algorithm "backtracks" to find nodes that only lead to safe nodes.
+
+### The BFS (Topological Sort) Algorithm
+
+1.  **Reverse the Graph:** Create a new adjacency list where every edge $u \to v$ is converted to $v \to u$.
+2.  **Calculate In-degrees:** Determine the in-degree for every node in the **reversed graph**.
+3.  **Initial Queue:** Push all nodes that have an in-degree of 0 in the reversed graph (these were the original terminal nodes) into a queue.
+4.  **BFS Process:**
+    - While the queue is not empty, pop a node.
+    - This node is a **safe node**; add it to your result list.
+    - For every neighbor of this node in the reversed graph, **reduce its in-degree**.
+    - If a neighbor's in-degree **becomes 0**, it means all its original outgoing paths now lead to confirmed safe nodes. Push it into the queue.
+5.  **Final Step:** Since the queue processes nodes in a randomized order, **sort the result list** in ascending order before returning it.
+
+### Implementation Code
+
+#### C++ Implementation
+
+```cpp
+vector<int> eventualSafeNodes(int V, vector<int> adj[]) {
+    vector<int> adjRev[V];
+    int indegree[V] = {0};
+    // 1. Reverse the graph and calculate in-degrees
+    for (int i = 0; i < V; i++) {
+        for (auto it : adj[i]) {
+            adjRev[it].push_back(i); // it -> i
+            indegree[i]++;
+        }
+    }
+    // 2. Initial Queue
+    queue<int> q;
+    for (int i = 0; i < V; i++) {
+        if (indegree[i] == 0) q.push(i);
+    }
+    // 3. BFS
+    vector<int> safeNodes;
+    while (!q.empty()) {
+        int node = q.front(); q.pop();
+        safeNodes.push_back(node);
+        for (auto it : adjRev[node]) {
+            indegree[it]--;
+            if (indegree[it] == 0) q.push(it);
+        }
+    }
+    // 4. Sort the result
+    sort(safeNodes.begin(), safeNodes.end());
+    return safeNodes;
+}
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(V + E) + O(V \log V)$**.
+  - $O(V + E)$ covers reversing the graph and the standard BFS traversal.
+  - $O(V \log V)$ is required for the final sorting of the safe nodes.
+- **Space Complexity:** **$O(V + E)$**.
+  - This is slightly higher than the DFS method because of the **additional space** needed to store the reversed graph.
+
+### BFS vs. DFS Comparison
+
+- **DFS:** Uses cycle detection and identifies nodes that are not part of or leading to a cycle. It is generally more space-efficient because it doesn't require reversing the graph.
+- **BFS:** Uses the topological sort principle on a reversed graph. It is a more "tracing back" or "backtracking" method starting from terminal nodes.

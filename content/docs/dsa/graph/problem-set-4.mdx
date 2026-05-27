@@ -1,0 +1,66 @@
+---
+title: Problems Set 4
+---
+
+### Number of Provinces (Connected Components)
+
+The goal is to find the number of connected components in an undirected graph represented by an adjacency matrix.
+
+- **DSU Implementation:** Iterate through the adjacency matrix. If an edge exists between node `i` and `j` (`adj[i][j] == 1`), perform a **union** operation to connect them.
+- **Counting Strategy:** Instead of standard traversal, the number of provinces is equal to the number of **ultimate parents** or "bosses" in the DSU.
+- **Logic:** A node is an ultimate parent if it points to itself (`parent[i] == i`). Iterate from $0$ to $V-1$ and increment a counter whenever this condition is met.
+- **Complexity:** The time complexity is $O(V^2)$ to traverse the matrix plus $O(V)$ to count parents, which is far more efficient for dynamic connectivity than repeated BFS/DFS.
+
+### Number of Operations to Make Network Connected
+
+This problem asks for the minimum edges to move to connect all $N$ nodes into a single component.
+
+- **Key Constraint:** To connect $C$ separate components, you require at least **$C - 1$ edges**.
+- **Extra Edges:** While building the DSU, if an edge exists between two nodes that **already share the same ultimate parent**, that edge is considered "extra" or redundant.
+- **Final Condition:**
+  1. Count the number of connected components ($C$) using the parent array.
+  2. Count the total redundant edges.
+  3. If `extraEdges >= C - 1`, the answer is `C - 1`. Otherwise, return `-1` because connectivity is impossible.
+
+### Accounts Merge
+
+This involves merging accounts that share the same email address.
+
+- **DSU Strategy:** Map every unique email to the index of the account where it first appeared.
+- **Merging Logic:** If you encounter an email in account `i` that was previously mapped to account `j`, perform `union(i, j)` to link these accounts.
+- **Reconstruction:**
+  1. Group all emails by their **ultimate parent's index**.
+  2. Sort the emails for each unique account.
+  3. Pair the sorted email list with the account name found at that index.
+
+### Number of Islands II (Online Queries)
+
+This is an "online query" problem where you return the number of islands after every new island placement on a grid.
+
+- **Node ID Mapping:** Convert 2D coordinates `(row, col)` into 1D DSU node IDs using the formula: **`(row * m) + col`**, where `m` is the number of columns.
+- **Online Logic:**
+  1. Maintain a `visited` array to ignore redundant placements on the same cell.
+  2. For each new placement, increment the island `count`.
+  3. Check the **four adjacent neighbors** (top, right, bottom, left).
+  4. If a neighbor is a valid island and has a **different ultimate parent**, perform a `union` and **decrement** the `count` by 1.
+
+### Making a Large Island
+
+The objective is to find the largest possible island size by changing at most one '0' to '1'.
+
+- **Step 1: Pre-calculation:** Use DSU to connect all existing islands of 1s. Ensure your DSU tracks the **size of each component**.
+- **Step 2: Evaluating Zeros:** Iterate through every '0' in the grid and check its four neighbors.
+- **The "Set" Trick:** To avoid double-counting the same island (e.g., if a '0' is surrounded by the same large island on two sides), store the **ultimate parents** of neighboring 1s in a **Set**.
+- **Final Calculation:** For a cell at `(r, c)`, the potential island size is **$1 + \sum(\text{unique neighboring component sizes})$**.
+
+### Most Stones Removed with Same Row or Column
+
+Stones can be removed if they share a row or column with another stone.
+
+- **Core Intuition:** In a connected component of $X$ stones, you can remove $X-1$ stones, leaving exactly one stone behind.
+- **The Formula:** `Total Stones - Number of Connected Components`.
+- **DSU Implementation:**
+  - Treat every **row** and **column** as a node in the DSU.
+  - To avoid overlap between row indices and column indices, shift column indices: `col_node = col + max_row + 1`.
+  - For every stone at `(r, c)`, perform `union(r, shifted_col)`.
+  - **Component Counting:** Count the number of ultimate parents only for rows and columns that actually contain stones.

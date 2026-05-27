@@ -1,0 +1,144 @@
+---
+title: World Ladder 2
+---
+
+### Problem Objective
+
+- Given a `startWord`, a `targetWord`, and a `wordList`, find **every sequence** that represents the shortest path from the start to the target.
+- Each step in a sequence must involve changing exactly one character, and the resulting word must exist in the word list.
+
+### Core Algorithm: BFS with Sequence Storage
+
+While Word Ladder 1 only requires storing a word and its distance in the queue, Word Ladder 2 requires a more complex structure to keep track of the paths.
+
+- **The Queue:** Instead of storing strings, the queue stores **lists of strings** (vectors in C++), where each list represents a path currently being explored.
+- **The Level-wise Strategy:** BFS is used because it naturally explores the graph level-by-level, ensuring that the first time we hit the `targetWord`, we have found the shortest possible path(s).
+
+### The "Level Deletion" Trick
+
+The most critical difference in Word Ladder 2 is how words are marked as "visited" or removed from the word set.
+
+- **Immediate Deletion (Incorrect):** In Word Ladder 1, you delete a word from the set as soon as you find it. In Word Ladder 2, this is incorrect because the **same word might be needed by multiple paths** at the same level.
+- **Delayed Deletion (Correct):** You must keep track of all words used during a **current level** and only erase them from the set once the entire level has been processed. This allows different sequences at the same level to "collide" at the same word, which is necessary to capture all shortest paths.
+
+### Algorithmic Steps
+
+1.  **Initialization:**
+    - Place all words from the word list into an `unordered_set` for $O(1)$ lookups.
+    - Initialize a queue with a list containing only the `startWord`.
+    - Maintain a list of words "used on the current level".
+2.  **BFS Traversal:**
+    - Identify the current level size to process level-wise.
+    - **Before starting a new level**, erase all words from the set that were marked as "used" in the previous level.
+    - For each sequence in the current level:
+      - Take the **last word** of the sequence.
+      - Try replacing every character (A–Z) at every position.
+      - If the transformed word is in the set:
+        - Create a **new sequence** by adding the transformed word to a copy of the current sequence.
+        - Push this new sequence into the queue.
+        - Mark the transformed word as "used" for this level.
+3.  **Target Found:**
+    - If the last word of a popped sequence is the `targetWord`, add it to your final results.
+    - Note: Do not stop immediately; finish the current level to ensure all other paths of the same shortest length are captured.
+
+### Implementation Logic (C++ Style)
+
+```cpp
+vector<vector<string>> findSequences(string beginWord, string endWord, vector<string>& wordList) {
+    unordered_set<string> st(wordList.begin(), wordList.end());
+    queue<vector<string>> q;
+    q.push({beginWord});
+
+    vector<string> usedOnLevel;
+    usedOnLevel.push_back(beginWord);
+    int level = 0;
+    vector<vector<string>> ans;
+
+    while (!q.empty()) {
+        vector<string> vec = q.front(); q.pop();
+
+        // 1. Erase used words when reaching a new level
+        if (vec.size() > level) {
+            level++;
+            for (auto it : usedOnLevel) st.erase(it);
+            usedOnLevel.clear();
+        }
+
+        string word = vec.back();
+        if (word == endWord) {
+            // Found a shortest path sequence
+            if (ans.size() == 0) ans.push_back(vec);
+            else if (ans.size() == vec.size()) ans.push_back(vec);
+        }
+
+        // 2. Standard transformation logic
+        for (int i = 0; i < word.size(); i++) {
+            char original = word[i];
+            for (char c = 'a'; c <= 'z'; c++) {
+                word[i] = c;
+                if (st.count(word)) {
+                    vec.push_back(word);
+                    q.push(vec);
+                    usedOnLevel.push_back(word);
+                    vec.pop_back(); // Backtrack for next character transformation
+                }
+            }
+            word[i] = original;
+        }
+    }
+    return ans; //
+}
+```
+
+### Complexity and Performance
+
+- **Time Complexity:** Approximately $O(N \times \text{wordLength} \times 26)$, where $N$ is the number of words. However, it is difficult to predict precisely because it depends on the number of possible sequences found.
+- **Note on LeetCode:** This specific approach might trigger a **Time Limit Exceeded (TLE)** on LeetCode due to recent strict updates in their test cases. While this solution is highly recommended for **interviews**, solving it on LeetCode often requires advanced competitive programming optimizations beyond the scope of a standard interview.
+
+### The Optimised Approach (LeetCode/CP Hack)
+
+Because the standard approach stores many sequences in the queue, it often triggers a **Time Limit Exceeded (TLE)** on LeetCode. The optimized "Competitive Programming" way breaks the problem into two distinct steps.
+
+#### **Step 1: BFS for Distance Mapping**
+
+- **Goal:** Instead of storing sequences, perform a standard BFS to find the **minimum distance** of every reachable word from the `startWord`.
+- **Data Structure:** Use an `unordered_map<string, int>` to store `{word: distance}`.
+- **Outcome:** You get a map showing exactly which level each word belongs to.
+
+#### **Step 2: Backtracking (DFS) from End to Start**
+
+- **Goal:** Use the distance map to "trace back" paths from the `targetWord` to the `startWord`.
+- **Intuition:** Backtracking from the **end to the beginning** is more efficient because it prevents the algorithm from exploring dead-end paths that don't lead to the target.
+- **The Logic:** If you are at a word with distance $L$, you only look for neighbors with distance $L-1$ in the map.
+- **Final Step:** Since you are moving backward, you must **reverse each sequence** before adding it to the final result.
+
+**Code Snippet (Optimised Backtracking):**
+
+```cpp
+void dfs(string word, vector<string>& seq) {
+    if (word == beginWord) {
+        reverse(seq.begin(), seq.end());
+        ans.push_back(seq);
+        reverse(seq.begin(), seq.end()); // Re-reverse for further recursion
+        return;
+    }
+    int steps = mpp[word];
+    for (int i = 0; i < word.size(); i++) {
+        // Try all character changes
+        if (mpp.find(newWord) != mpp.end() && mpp[newWord] + 1 == steps) {
+            seq.push_back(newWord);
+            dfs(newWord, seq);
+            seq.pop_back(); // Standard Backtracking
+        }
+    }
+}
+```
+
+### **Comparison Summary**
+
+| Feature        | Standard BFS                         | Optimised Approach                 |
+| :------------- | :----------------------------------- | :--------------------------------- | --- |
+| **Storage**    | Queue of Paths (Heavy)               | Map of Distances (Light)           |     |
+| **Complexity** | Hard to predict; varies by sequences | $O(V+E)$ BFS + efficient DFS       |     |
+| **Best For**   | Interviews                           | LeetCode / Competitive Programming |     |
+| **Key Trick**  | Level-wise word deletion             | Backtracking from target to source |     |

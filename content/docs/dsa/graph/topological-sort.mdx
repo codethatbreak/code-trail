@@ -1,0 +1,64 @@
+---
+title: Topological Sort
+---
+
+### Definition and Prerequisites
+
+- Topological Sort: A linear ordering of vertices such that for every directed edge $u \to v$, node $u$ always appears before node $v$ in the ordering.
+- Directed Acyclic Graph (DAG): Topological sorting only exists for DAGs.
+  - **Why not Undirected?** In an undirected graph, an edge between 1 and 2 implies $1 \to 2$ and $2 \to 1$. It is impossible to have an ordering where 1 is before 2 and 2 is also before 1.
+  - **Why not Cyclic?** Cycles create circular dependencies (e.g., $1 \to 2 \to 3 \to 1$). In such a case, 1 must be before 2, 2 before 3, and 3 before 1, which is logically impossible to represent linearly.
+
+### The DFS Algorithm Logic
+
+The algorithm uses a standard DFS traversal with one critical addition: a Stack (Last-In, First-Out) to store nodes in the correct order.
+
+- Initialization:
+  - Maintain a visited array (initialized to 0).
+  - Declare a stack to store the ordering.
+- Traversal:
+  1.  Iterate through all nodes (0 to $V-1$) to handle multiple components. If a node is not visited, call the DFS function for it.
+  2.  Inside the DFS call, mark the current node as visited.
+  3.  Recursively call DFS for all unvisited neighbors of the current node.
+  4.  Critical Step: Once the DFS call for a node and all its descendants is completely finished, push that node onto the stack before returning.
+- Final Output: Once all nodes are processed, pop elements from the stack one by one. This sequence is the topological sort.
+
+### Complexity Analysis
+
+- Time Complexity: $O(V + E)$. This is identical to a standard DFS traversal where every node ($V$) and every directed edge ($E$) is visited exactly once.
+- Space Complexity: $O(V)$. This includes the space for the visited array, the stack, and the recursion stack space (which can be up to $V$ in a skewed graph).
+
+---
+
+### Implementation Code
+
+#### C++
+
+```cpp
+void dfs(int node, int vis[], stack<int> &st, vector<int> adj[]) {
+    vis[node] = 1; // Mark node as visited
+    for (auto it : adj[node]) {
+        if (!vis[it]) dfs(it, vis, st, adj); // Recurse for neighbors
+    }
+    // Push to stack ONLY AFTER all dependencies are processed
+    st.push(node);
+}
+
+vector<int> topoSort(int V, vector<int> adj[]) {
+    int vis[V] = {0};
+    stack<int> st;
+    for (int i = 0; i < V; i++) {
+        if (!vis[i]) dfs(i, vis, st, adj);
+    }
+    vector<int> ans;
+    while (!st.empty()) {
+        ans.push_back(st.top());
+        st.pop();
+    }
+    return ans;
+}
+```
+
+### 5. The Intuition
+
+The reason we push to the stack after the DFS call completes is that when a node $u$'s DFS is finished, we are guaranteed that all nodes reachable from $u$ (its dependencies) have already been processed and placed into the stack. By pushing $u$ last, it will sit "above" its dependencies in the stack, ensuring it appears before them when popped.

@@ -1,0 +1,87 @@
+---
+title: Kosaraju Algorithm
+---
+
+### Core Definitions
+
+- **Strongly Connected Components (SCCs):** This concept is valid **only for directed graphs**. An SCC is a component where **every pair of vertices is reachable from each other**.
+  - For example, in an SCC containing nodes 0, 1, and 2, you must be able to go from 0 to 1 and 1 back to 0, as well as between all other pairs.
+  - A single node can also be its own SCC if it cannot reach other nodes in a bidirectional manner.
+
+### The Intuition Behind the Algorithm
+
+The primary challenge is that a standard DFS started from an arbitrary node might visit all nodes in a graph, failing to differentiate between separate SCCs.
+
+- **The "Via" Logic:** If you have multiple SCCs connected in a linear fashion (e.g., $SCC1 \to SCC2 \to SCC3$), a DFS starting in $SCC1$ will eventually visit every node in $SCC2$ and $SCC3$.
+- **Reversing Edges:** If you **reverse every edge** in the graph, the internal reachability of an SCC remains unchanged (if you could reach everyone before, you still can), but the **connections between SCCs are reversed**.
+- **The Goal:** By reversing the edges and starting DFS calls in a specific order, you can "trap" the traversal within individual SCCs, preventing it from leaking into adjacent components.
+
+---
+
+### The Three-Step Algorithm
+
+Kosaraju's algorithm is executed in three distinct phases:
+
+#### **Step 1: Sort Nodes by Finishing Time**
+
+- Perform a standard **DFS traversal** on the original graph.
+- Maintain a **visited array** to ensure each node is processed once.
+- As a node's DFS call finishes (after visiting all its neighbors), push that node onto a **Stack**.
+- **Purpose:** The node that finishes last will be at the top of the stack. This ensures that when we process the reversed graph, we start with nodes from the "first" SCCs in the original topological flow.
+
+#### **Step 2: Reverse the Graph (Transpose)**
+
+- Create a new adjacency list representing the **transpose of the graph**.
+- For every directed edge $u \to v$ in the original graph, create a directed edge **$v \to u$** in the new graph.
+
+#### **Step 3: DFS on the Reversed Graph**
+
+- Reset the visited array.
+- While the stack is not empty:
+  1.  Pop the top node.
+  2.  If the node is **not visited**, it marks the beginning of a **new SCC**.
+  3.  Perform a DFS starting from this node on the **reversed graph**.
+  4.  All nodes visited during this specific DFS call belong to the same SCC.
+- **Result:** The total number of times you initiate a new DFS in this step equals the **number of SCCs** in the graph.
+
+---
+
+### Implementation Details (C++ Logic)
+
+```cpp
+// Step 1: DFS to get finishing time in a stack
+void dfs(int node, vector<int> &vis, vector<int> adj[], stack<int> &st) {
+    vis[node] = 1;
+    for (auto it : adj[node]) {
+        if (!vis[it]) dfs(it, vis, adj, st);
+    }
+    st.push(node); // Push after finishing all neighbors
+}
+
+// Step 2: Transpose the graph
+vector<int> adjT[V];
+for (int i = 0; i < V; i++) {
+    for (auto it : adj[i]) {
+        adjT[it].push_back(i); // Reverse: it -> i
+    }
+}
+
+// Step 3: DFS on Transpose in stack order
+int sccCount = 0;
+while (!st.empty()) {
+    int node = st.top(); st.pop();
+    if (!vis[node]) {
+        sccCount++; // New SCC found
+        dfs3(node, vis, adjT); // Perform DFS on reversed graph
+    }
+}
+```
+
+---
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(V + E)$**.
+  - The algorithm involves three main passes: the initial DFS, the graph transposition, and the final DFS on the transpose. Each of these takes $O(V+E)$ time, resulting in $3 \times (V+E)$, which simplifies to linear time.
+- **Space Complexity:** **$O(V + E)$**.
+  - This includes space for the visited array ($O(V)$), the stack ($O(V)$), and the transposed adjacency list ($O(V+E)$).

@@ -1,0 +1,37 @@
+---
+title: Dijkstra's Algorithm - Why PQ not Queue
+---
+
+Dijkstra’s algorithm is a greedy approach to find the shortest path in a weighted graph. While a standard Queue (Q) can technically yield the correct answer, a **Priority Queue (PQ)** is the preferred data structure for efficiency and optimal path exploration.
+
+### Why Priority Queue (PQ) and not a standard Queue (Q)?
+
+The primary reason for using a Priority Queue over a regular Queue is to avoid **unnecessary iterations and path explorations**.
+
+- **Unnecessary Explorations:** In a standard Queue, nodes are processed in the order they are discovered (FIFO), regardless of their current distance from the source. This means the algorithm might explore a longer path to a node first, then later find a shorter path and have to re-process that node and all its neighbors.
+- **The "Minimal First" Advantage:** A Priority Queue always extracts the node with the **minimal distance** first. By exploring the smallest distance available, the algorithm "marks" nodes with their absolute minimum distance early on.
+- **Efficiency:** Using a Queue turns the algorithm into a "brute force" approach that explores all possible paths. In contrast, the Priority Queue ensures that when a shorter path to a node arrives later, it won't find a "shorter" distance to update because the minimal path was likely already handled, thus saving time.
+
+### Intuition: The Greedy Strategy
+
+The intuition behind Dijkstra's is a **greedy strategy**.
+
+- Instead of exploring every path blindly, the algorithm always asks: **"Which node is currently the closest and unvisited?"**.
+- By visiting the minimal-distance node first, you ensure that you are building the shortest paths level-by-level based on actual edge weights rather than the number of edges.
+
+### Time Complexity Derivation ($O(E \log V)$)
+
+The time complexity of Dijkstra’s using a Priority Queue is derived from the operations performed on the heap and the number of edges in the graph.
+
+- **The Components:**
+  - **$V$ (Vertices):** Total number of nodes.
+  - **$E$ (Edges):** Total number of edges.
+  - **Heap Operations:** Every "push" or "pop" operation in a Priority Queue takes logarithmic time relative to the size of the heap ($O(\log(\text{heap size}))$).
+- **The Formula Breakdown:**
+  1.  Each node is popped from the Priority Queue once (at the minimal distance), which takes $V \times \log(\text{heap size})$.
+  2.  For every node, we check all its outgoing edges ($E$). If a shorter path is found, we push it into the heap, which takes $E \times \log(\text{heap size})$.
+  3.  Summing these gives: **$(V + E) \times \log(\text{heap size})$**.
+- **Simplifying the Heap Size:**
+  - In a dense graph (the "extremist case"), the heap size can grow up to $V^2$ because multiple paths to the same nodes might be stored simultaneously.
+  - Since $\log(V^2) = 2 \log V$, the complexity becomes $(V + E) \times 2 \log V$.
+  - In a dense graph, $E$ is roughly $V^2$, making $E$ much larger than $V$. Thus, the final simplified complexity is **$O(E \log V)$**.

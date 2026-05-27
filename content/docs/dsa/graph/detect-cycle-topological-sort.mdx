@@ -1,0 +1,71 @@
+---
+title: Detect Cycle in Direct Graph Topological Sort
+---
+
+### Core intuition
+
+- **DAG Requirement:** A topological sort is only possible for a **Directed Acyclic Graph (DAG)**.
+- **The Logic of Failure:** If a directed graph contains a **cycle**, it is impossible to generate a topological sort that includes all $N$ vertices. In a cycle, nodes have circular dependencies, meaning their in-degrees will never drop to zero during the standard Kahn's process.
+- **The Detection Rule:**
+  - If the generated topological sort contains exactly **$N$ elements**, the graph is a **DAG** (no cycle).
+  - If the number of elements in the topological sort is **less than $N$**, the graph contains a **cycle**.
+
+### The Algorithm Steps
+
+Instead of storing the actual topological sort, you can simply use a **counter** to track how many nodes are processed.
+
+1.  **In-Degree Calculation:** Calculate the in-degree for every node in the graph.
+2.  **Initial Queue:** Push all nodes with an **in-degree of 0** into a queue.
+3.  **BFS Traversal & Counter:**
+    - While the queue is not empty, pop a node and **increment a counter**.
+    - For every neighbor of the popped node, **reduce its in-degree by 1**.
+    - If a neighbor's in-degree **becomes 0**, push it into the queue.
+4.  **Final Check:**
+    - If `count == N`, return `false` (no cycle).
+    - If `count != N`, return `true` (cycle detected).
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(V + E)$**, which is the standard BFS complexity for directed graphs.
+- **Space Complexity:** **$O(V)$**, involving extra space for the queue and the in-degree array (often referred to as $O(2N)$).
+
+---
+
+### Implementation Code
+
+#### C++ Implementation
+
+```cpp
+bool isCyclic(int V, vector<int> adj[]) {
+    int indegree[V] = {0};
+    // 1. Calculate In-degrees
+    for (int i = 0; i < V; i++) {
+        for (auto it : adj[i]) {
+            indegree[it]++;
+        }
+    }
+
+    // 2. Queue nodes with 0 in-degree
+    queue<int> q;
+    for (int i = 0; i < V; i++) {
+        if (indegree[i] == 0) q.push(i);
+    }
+
+    int cnt = 0; // Counter to track processed nodes
+    // 3. BFS process
+    while (!q.empty()) {
+        int node = q.front();
+        q.pop();
+        cnt++; // Increment count for every node that comes out of the queue
+
+        for (auto it : adj[node]) {
+            indegree[it]--;
+            if (indegree[it] == 0) q.push(it);
+        }
+    }
+
+    // 4. If count is not equal to V, there is a cycle
+    if (cnt == V) return false;
+    return true;
+}
+```

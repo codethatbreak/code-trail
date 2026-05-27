@@ -1,0 +1,72 @@
+---
+title: Khan's Algorithm
+---
+
+**Kahn’s Algorithm** is a popular method for performing a **topological sort** on a graph using the **Breadth-First Search (BFS)** traversal technique.
+
+### Definition and Prerequisites
+
+- **Topological Sort:** A linear ordering of vertices such that for every directed edge $u \to v$, node $u$ appears before node $v$ in the ordering.
+- **DAG Only:** Topological sorting is only valid for **Directed Acyclic Graphs (DAGs)**.
+  - It cannot work for **undirected graphs** because edges are bi-directional (1 to 2 also implies 2 to 1), making a fixed linear order impossible.
+  - It cannot work for **cyclic graphs** because they contain circular dependencies (e.g., $1 \to 2 \to 3 \to 1$), where no node can logically come first.
+- **Multiple Solutions:** A single graph can have multiple valid topological orderings as long as all edge conditions are satisfied.
+
+### Core Concept: In-Degree
+
+Kahn’s algorithm relies on the concept of **in-degree**, which is defined as the **number of incoming edges** to a specific node.
+
+- If a node has an in-degree of **0**, it has no dependencies and can be placed at the beginning of the linear ordering.
+- The algorithm works by progressively "removing" these 0-dependency nodes and updating the dependencies of their neighbors.
+
+### The Algorithm Steps
+
+1.  **Calculate In-Degrees:** Traverse the entire adjacency list to find the in-degree of every node.
+2.  **Initial Queue:** Find all nodes with an **in-degree of 0** and push them into a **FIFO queue**.
+3.  **Process Queue:** While the queue is not empty:
+    - Pop the front node and add it to the **Topological Sort result**.
+    - Iterate through all **adjacent neighbors** of the popped node.
+    - **Reduce the in-degree** of each neighbor by 1 (effectively "removing" the edge from the popped node).
+    - If a neighbor's in-degree **becomes 0**, push it into the queue.
+4.  **Completion:** The process continues until the queue is empty. The result list now contains the topological sort.
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(V + E)$**, where $V$ is the number of vertices and $E$ is the number of edges. Every edge and node is processed exactly once.
+- **Space Complexity:** **$O(V)$**. This accounts for the in-degree array, the queue, and the list used to store the result.
+
+---
+
+### Implementation Code
+
+#### C++ Implementation
+
+```cpp
+vector<int> topoSort(int V, vector<int> adj[]) {
+    int indegree[V] = {0};
+    // 1. Calculate In-degrees
+    for (int i = 0; i < V; i++) {
+        for (auto it : adj[i]) {
+            indegree[it]++;
+        }
+    }
+    // 2. Queue nodes with 0 in-degree
+    queue<int> q;
+    for (int i = 0; i < V; i++) {
+        if (indegree[i] == 0) q.push(i);
+    }
+    vector<int> topo;
+    // 3. BFS Traversal
+    while (!q.empty()) {
+        int node = q.front();
+        q.pop();
+        topo.push_back(node);
+        // Reduce neighbor in-degrees
+        for (auto it : adj[node]) {
+            indegree[it]--;
+            if (indegree[it] == 0) q.push(it);
+        }
+    }
+    return topo;
+}
+```

@@ -1,0 +1,38 @@
+---
+title: Floyd Warshall
+---
+
+The **Floyd Warshall Algorithm** is a **multi-source shortest path algorithm** used to find the shortest distance between every pair of vertices in a graph. Unlike Dijkstra or Bellman-Ford, which are single-source algorithms, Floyd Warshall calculates the shortest path from **every node to every other node**.
+
+### Core Concept and Intuition
+
+- **The "Via" Logic:** The fundamental idea is to try reaching node $j$ from node $i$ by going **via every possible intermediate vertex $k$**,.
+- **Formula:** For every pair of nodes $(i, j)$, the algorithm updates the distance as:  
+  `Matrix[i][j] = min(Matrix[i][j], Matrix[i][k] + Matrix[k][j])`,,.
+- **Dynamic Programming:** It is considered a **dynamic programming** approach because it builds upon pre-computed shortest paths. For example, when calculating a path via node 4, it might use a previously computed shortest path from 0 to 4 that already went via node 2,.
+
+### Implementation Details
+
+- **Graph Representation:** The algorithm is implemented using an **adjacency matrix** (often called a cost matrix).
+- **Initialization:**
+  - The distance from a node to itself is always **0** (`Matrix[i][i] = 0`).
+  - Direct edges are initialized with their respective weights.
+  - All unreachable paths are initially marked as **infinity** (or a very large value like $1e9$),.
+- **Algorithm Structure:** It uses **three nested loops**,:
+  1.  The outer loop iterates through each intermediate vertex $k$ (the "via" node).
+  2.  The inner two loops iterate through all possible source nodes $i$ and destination nodes $j$,.
+- **Undirected Graphs:** To apply this to an undirected graph, treat every undirected edge as two directed edges with the same weight.
+
+### Special Features
+
+- **Negative Cycle Detection:** Floyd Warshall can effectively detect **negative cycles**,. In a normal graph, the distance from a node to itself should stay 0. If, after running the algorithm, any diagonal element `Matrix[i][i]` becomes **less than 0**, it confirms the existence of a negative cycle,.
+- **In-place Updates:** The algorithm can be performed "in-place" by updating the original adjacency matrix directly.
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(N^3)$**, where $N$ is the number of vertices, due to the three nested loops,.
+- **Space Complexity:** **$O(N^2)$** to store the adjacency matrix.
+
+### Comparison with Dijkstra
+
+While you could technically run Dijkstra $N$ times (once for every node) to get all-pair shortest paths, Dijkstra **fails with negative weights** and can fall into infinite loops with negative cycles,. Floyd Warshall is more robust in these scenarios, though it has a higher fixed time complexity of $O(N^3)$,.

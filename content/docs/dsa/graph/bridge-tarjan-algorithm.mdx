@@ -1,0 +1,62 @@
+---
+title: Bridge in Graph Using Tarjan Algorithm
+---
+
+### Definition of a Bridge
+
+A **bridge** is defined as any edge in a graph which, if removed, causes the graph to break into two or more separate components. If removing an edge does not split the graph, it is not a bridge. The goal of the algorithm is to identify and print all such "critical connections" in a given graph.
+
+### Core Prerequisite and Data Structures
+
+The algorithm relies on a **Depth-First Search (DFS)** traversal. To identify bridges, the algorithm maintains two specific arrays:
+
+- **Time of Insertion (`tin`):** Records the specific step (time) at which a node was first reached during the DFS traversal.
+- **Lowest Time of Insertion (`low`):** Represents the lowest `tin` reachable from the current node through any path, **excluding its parent**.
+- **Timer:** A global variable (initialized to 1 or 0) used to assign values to the `tin` and `low` arrays as nodes are visited.
+
+### The Algorithm Logic
+
+The algorithm explores the graph using DFS while tracking the "time" each node is visited and the "lowest" point it can reach back to.
+
+1.  **Initialization:** Mark the current `node` as visited. Assign both `tin[node]` and `low[node]` the current value of the `timer`, then increment the `timer`.
+2.  **Neighbor Exploration:** Iterate through all adjacent neighbors (`it`) of the current node.
+3.  **Handle Parent:** If the neighbor is the **parent** (the node from which you arrived), ignore it and move to the next neighbor. This is crucial because a node should not find its lowest path through the very edge we are testing.
+4.  **Unvisited Neighbors:** If the neighbor is **not visited**:
+    - Recursively call DFS for that neighbor.
+    - Upon returning from the DFS, update the current node’s `low` value: `low[node] = min(low[node], low[it])`. Node is "greedy" and wants the lowest possible reachable time.
+    - **The Bridge Check:** Check if the edge between `node` and `it` is a bridge. If **`low[it] > tin[node]`**, then the edge is a **bridge**.
+      - _Intuition:_ This condition means there is no path from the neighbor (or its descendants) that can reach back to the current node or any node visited before it. Thus, removing the edge `(node, it)` will disconnect the graph.
+5.  **Visited Neighbors (Back-edges):** If the neighbor is **already visited** (and is not the parent), it implies a cycle or an alternative path. Update the current node's `low` value: `low[node] = min(low[node], low[it])` (or `tin[it]`) to reflect this alternative reach. This edge is definitely not a bridge because it's a "back-edge" in a path you've already explored.
+
+### Implementation Logic (C++ Style)
+
+```cpp
+void dfs(int node, int parent, vector<int> &vis, vector<int> adj[], int tin[], int low[], vector<vector<int>> &bridges) {
+    vis[node] = 1;
+    tin[node] = low[node] = timer++;
+
+    for (auto it : adj[node]) {
+        if (it == parent) continue; // Skip parent
+
+        if (!vis[it]) {
+            dfs(it, node, vis, adj, tin, low, bridges);
+            low[node] = min(low[node], low[it]); // Update low after DFS
+
+            // Bridge condition check
+            if (low[it] > tin[node]) {
+                bridges.push_back({it, node});
+            }
+        } else {
+            // Already visited, update low
+            low[node] = min(low[node], low[it]);
+        }
+    }
+}
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(V + 2E)$** for an undirected graph. This is the standard time for a complete DFS traversal where $V$ is vertices and $E$ is edges.
+- **Space Complexity:** **$O(V + 2E) + 3 \times O(V)$**.
+  - $O(V + 2E)$ is for the adjacency list representation.
+  - $3 \times O(V)$ is for the `visited`, `tin`, and `low` arrays.

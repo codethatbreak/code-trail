@@ -1,0 +1,43 @@
+---
+title: Bellman Ford
+---
+
+The **Bellman-Ford Algorithm** is a single-source shortest path algorithm that calculates the shortest distance from a source node to all other nodes in a weighted graph. While similar in purpose to Dijkstra's algorithm, it possesses unique capabilities regarding negative weights and cycles.
+
+### Comparison with Dijkstra's Algorithm
+
+- **Negative Edges:** Dijkstra’s algorithm fails when a graph contains negative edges, whereas Bellman-Ford can handle them effectively.
+- **Negative Cycles:** A negative cycle occurs when the total weight of a path that returns to its starting point is less than zero. Dijkstra's algorithm will enter an infinite loop (TLE) in such cases, but **Bellman-Ford is specifically designed to detect negative cycles**.
+- **Efficiency:** Dijkstra is generally faster ($O(E \log V)$), while Bellman-Ford is more time-consuming ($O(V \times E)$).
+
+### Core Requirements
+
+- **Directed Graphs (DG):** Bellman-Ford is strictly applicable to directed graphs.
+- **Handling Undirected Graphs:** To use this algorithm on an undirected graph, you must convert each undirected edge into **two directed edges** with the same weight (e.g., an undirected edge between 1 and 2 becomes $1 \to 2$ and $2 \to 1$).
+
+### The Algorithm Logic: Relaxation
+
+The fundamental operation of this algorithm is the **relaxation of edges**.
+
+- **Definition of Relax:** If the distance to reach node $U$ plus the weight of the edge to node $V$ is less than the currently recorded distance to $V$, update the distance to $V$.
+  - Formula: `if (dist[u] + wt < dist[v]) dist[v] = dist[u] + wt`.
+- **Process:**
+  1.  **Initialize** a distance array with infinity for all nodes except the source, which is set to 0.
+  2.  **Relax all edges sequentially $N-1$ times** (where $N$ is the number of nodes).
+  3.  The order in which edges are relaxed during each iteration does not matter; all edges must be processed in every iteration.
+
+### Why $N-1$ Iterations?
+
+The intuition behind the $N-1$ limit is based on the **worst-case path propagation**. In a graph with $N$ nodes, the longest possible shortest path (without a cycle) contains $N-1$ edges. It may take up to $N-1$ iterations for the distance information from the source to "propagate" through the graph to the furthest node if the edges are processed in the most unfavorable order.
+
+### Negative Cycle Detection
+
+To detect a negative cycle, you perform an **$N^{th}$ relaxation** after completing the initial $N-1$ iterations.
+
+- **The Rule:** If any distance in the array **still reduces** during this $N^{th}$ iteration, a **negative cycle exists**.
+- **Logic:** Since $N-1$ iterations are guaranteed to find the shortest path in a graph without negative cycles, any further reduction implies the algorithm is trapped in a loop that continuously decreases the path weight.
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(V \times E)$**, where $V$ is the number of vertices and $E$ is the number of edges. This quadratic complexity makes it slower than Dijkstra.
+- **Space Complexity:** **$O(V)$** for the distance array used to store the shortest paths.

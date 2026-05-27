@@ -1,0 +1,81 @@
+---
+title: Disjoint Set
+---
+
+The **Disjoint Set Union (DSU)**, also known as the Disjoint Set data structure, is a highly efficient tool used to determine component connectivity in **dynamic graphs**—graphs that frequently change their configuration through the addition of edges,,.
+
+While a standard Breadth-First Search (BFS) or Depth-First Search (DFS) can check if two nodes are in the same component in $O(N+E)$ time, DSU provides the answer in **near-constant time** ($O(4\alpha)$),,.
+
+### Primary Functionalities
+
+The data structure primarily provides two operations,:
+
+- **Find Parent (findUltimateParent):** Determines the "top boss" or **ultimate parent** of a given node,.
+- **Union:** Connects two separate components into one. This is typically implemented via two strategies: **Union by Rank** or **Union by Size**.
+
+### Core Components and Initialization
+
+To implement DSU, you maintain several arrays:
+
+- **Parent Array:** Initially, every node is its own parent (`parent[i] = i`),.
+- **Rank/Size Array:**
+  - In **Union by Rank**, a rank array is initialized to **0** for all nodes.
+  - In **Union by Size**, a size array is initialized to **1** for all nodes, as each node starts as a component of size one,.
+
+### Union Strategies
+
+Both strategies aim to keep the resulting tree structure as flat as possible to ensure efficient traversals,.
+
+#### **Union by Rank**
+
+1.  Find the **ultimate parents** ($pu, pv$) of the two nodes ($u, v$).
+2.  Compare their ranks. Connect the **smaller rank node to the larger rank node**.
+3.  If the ranks are **equal**, connect one to the other and **increment the rank** of the new ultimate parent by 1,,.
+4.  If a smaller rank node is attached to a larger one, the overall rank (height) of the larger node does not change,.
+
+#### **Union by Size**
+
+1.  Find the ultimate parents of the two nodes.
+2.  Compare the **sizes** of their respective components.
+3.  Connect the smaller component to the larger one.
+4.  **Update the size** of the new ultimate parent by adding the size of the smaller component to it,.
+5.  This method is often considered more intuitive than rank because it tracks the actual number of nodes in each component.
+
+### Path Compression Optimization
+
+Path compression is a critical optimization that reduces the time complexity from $O(\log N)$ to nearly constant time,.
+
+- **The Logic:** When performing a `findParent` operation, the algorithm traverses up the tree to find the ultimate parent.
+- **The Compression:** Once the ultimate parent is found, the algorithm **backtracks** and reassigns the parent of every node encountered along that path directly to the ultimate parent,,.
+- This "flattens" the tree, ensuring that future calls for those nodes reach the boss in a single step,.
+
+### Complexity Analysis
+
+- **Time Complexity:** Both `Union` and `findParent` operations work in **$O(4\alpha)$**, where $\alpha$ is the inverse Ackermann function,. For all practical purposes, this value is so close to 1 that it is treated as **constant time**,.
+- **Space Complexity:** **$O(V)$** to store the parent and rank/size arrays,.
+
+### Implementation Snippet (Logic)
+
+```cpp
+// Recursive Find with Path Compression
+int findUltimateParent(int node) {
+    if (node == parent[node]) return node; // Base case: the boss
+    return parent[node] = findUltimateParent(parent[node]); // Path Compression
+}
+
+// Union by Rank Logic
+void unionByRank(int u, int v) {
+    int ulp_u = findUltimateParent(u);
+    int ulp_v = findUltimateParent(v);
+    if (ulp_u == ulp_v) return; // Already same component
+
+    if (rank[ulp_u] < rank[ulp_v]) {
+        parent[ulp_u] = ulp_v;
+    } else if (rank[ulp_v] < rank[ulp_u]) {
+        parent[ulp_v] = ulp_u;
+    } else {
+        parent[ulp_v] = ulp_u;
+        rank[ulp_u]++; // Increment rank only on tie
+    }
+}
+```

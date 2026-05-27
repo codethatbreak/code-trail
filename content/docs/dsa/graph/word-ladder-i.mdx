@@ -1,0 +1,48 @@
+---
+title: World Ladder I
+---
+
+### Problem Statement
+
+The objective is to find the **shortest transformation sequence** from a `startWord` to a `targetWord` using a given list of unique words.
+
+- **Rules:**
+  - Only **one letter** can be changed in each transformation.
+  - Each intermediate transformed word must exist in the provided **word list**.
+  - The `targetWord` must be in the word list, though the `startWord` may or may not be.
+  - If no such transformation exists, return **0**.
+
+### Why Use BFS?
+
+The sources explain that since we are looking for the **shortest sequence** and each transformation represents a single step (uniform weight of 1), **Breadth-First Search (BFS)** is the ideal algorithm. BFS explores the graph level-by-level; therefore, the first time we encounter the `targetWord`, it is guaranteed to be via the shortest path.
+
+### The Algorithm Strategy
+
+The approach involves starting from the `startWord` and systematically changing each of its characters to see if a valid word exists in the list.
+
+#### Initial Configuration
+
+- **Queue:** Use a queue to store pairs in the format **`{word, sequence_length}`**.
+- **Set Data Structure:** Copy the word list into a **Set** (specifically an `unordered_set` for $O(1)$ amortized lookup). This allows for efficient checking of word existence.
+- **Visited Tracking:** To avoid infinite loops and redundant processing, **remove a word from the set** once it is pushed into the queue. This effectively marks it as "visited".
+
+#### Step-by-Step Execution
+
+1.  **Initialize:** Push `{startWord, 1}` into the queue and remove the `startWord` from the set if it is present.
+2.  **Process Queue:** While the queue is not empty:
+    - Pop the front element `{word, steps}`.
+    - **Check Target:** If the current `word` matches the `targetWord`, return the `steps`.
+    - **Generate Transformations:** For each character position in the word:
+      - Store the **original character**.
+      - Replace it with every character from **'a' to 'z'**.
+      - **Verify:** Check if this new word exists in the set.
+      - **Update:** If it exists, push `{newWord, steps + 1}` into the queue and **delete it from the set**.
+      - **Reset:** Restore the original character to the word before moving to the next character position.
+3.  **Completion:** If the queue becomes empty without reaching the `targetWord`, return 0.
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(N \times \text{wordLength} \times 26)$**, where $N$ is the number of words in the word list.
+  - Each word can enter the queue at most once.
+  - For each word, we perform `wordLength * 26` operations to check all possible single-letter transformations.
+- **Space Complexity:** **$O(N)$**. This accounts for the space used by the set to store the word list and the queue used for traversal.

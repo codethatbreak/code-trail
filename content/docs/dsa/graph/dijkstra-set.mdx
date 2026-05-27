@@ -1,0 +1,73 @@
+---
+title: Dijkstra's Algorithm - Using Set
+---
+
+Implementing Dijkstra's algorithm with a **Set** is an alternative to the Priority Queue approach. While both methods utilize the "smallest-at-the-top" logic, the Set data structure offers a unique capability to **erase existing paths**, potentially saving on future iterations,.
+
+### Core Concept and Intuition
+
+- **Ascending Order:** Like a min-heap priority queue, a Set naturally stores unique values in **ascending order**, ensuring the smallest distance is always at the top,.
+- **The Erase Advantage:** The primary reason to use a Set over a priority queue is the **erase operation**. In a priority queue, if you find a shorter path to a node that is already in the queue, you simply push the new distance. This leaves the old, longer distance in the queue to be processed later. In a Set, you can **explicitly erase the old path** before inserting the new one.
+- **Efficiency:** Erasing an element in a Set is a **logarithmic operation** ($O(\log N)$). By investing this time to erase a path, you save time by avoiding redundant iterations for that same node in the future.
+
+### Algorithm Steps
+
+1.  **Initialization:**
+    - Create a **Distance Array** initialized to infinity (`1e9`), setting the source node distance to 0,.
+    - Declare a **Set of Pairs** `{distance, node}`.
+    - Insert the initial configuration `{0, source}` into the set,.
+2.  **Iterative Processing:**
+    - While the set is not empty, pick the **topmost (smallest)** element using an iterator (`st.begin()`).
+    - Capture the `distance` and `node`, then **erase** this element from the set.
+3.  **Neighbor Exploration and Relaxation:**
+    - For each adjacent neighbor of the current node:
+      - Calculate the potential new distance: `current_distance + edge_weight`.
+      - If the new distance is **smaller** than the existing `dist[neighbor]`:
+        - **Check for existing paths:** If the `dist[neighbor]` is not infinity, it means the neighbor is already in the set. **Erase the existing `{dist[neighbor], neighbor}`** pair from the set.
+        - **Update and Insert:** Update `dist[neighbor]` with the new shorter distance and **insert** the new `{new_distance, neighbor}` pair into the set.
+
+### Implementation Code (C++ Style)
+
+Based on the logic provided in the sources, here is the implementation structure:
+
+```cpp
+vector<int> dijkstra(int V, vector<vector<int>> adj[], int S) {
+    // Set stores {distance, node}
+    set<pair<int, int>> st;
+    vector<int> dist(V, 1e9); // Initialized to Infinity
+
+    st.insert({0, S});
+    dist[S] = 0;
+
+    while(!st.empty()) {
+        // Get the element with the smallest distance
+        auto it = *(st.begin());
+        int d = it.first;
+        int node = it.second;
+        st.erase(it); // Remove processed node from set
+
+        for(auto it : adj[node]) {
+            int adjNode = it;
+            int edgeWeight = it;
+
+            if(d + edgeWeight < dist[adjNode]) {
+                // ERASURE LOGIC: If the node was reached before,
+                // remove the old distance pair to save future iterations
+                if(dist[adjNode] != 1e9) {
+                    st.erase({dist[adjNode], adjNode});
+                }
+
+                // Update distance and insert new pair
+                dist[adjNode] = d + edgeWeight;
+                st.insert({dist[adjNode], adjNode});
+            }
+        }
+    }
+    return dist;
+}
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** Generally considered similar to the Priority Queue approach ($O(E \log V)$).
+- **Trade-off:** While the Set approach saves some future iterations by erasing redundant paths, the `set.erase` operation itself takes $O(\log N)$ time. Therefore, there is usually only a **minor performance difference** between Set and Priority Queue; the choice often depends on the specific graph structure or interviewer preference,.

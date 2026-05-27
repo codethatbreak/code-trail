@@ -1,0 +1,85 @@
+---
+title: Problems Set 3
+---
+
+### Printing the Shortest Path (Dijkstra Modification)
+
+This problem requires not just the minimum distance value, but the **actual sequence of nodes** that form that path.
+
+- **The Logic:** To reconstruct a path, you must remember the "source" of each node's discovery. This is done using a **parent array**.
+- **Implementation:**
+  - Initialize a `parent` array where `parent[i] = i`.
+  - During the standard Dijkstra relaxation step, if you find a shorter distance to an `adjacentNode`, update the `parent[adjacentNode] = currentNode`.
+  - **Path Reconstruction:** Start from the destination node $N$. Use the parent array to backtrack: `node = parent[node]` until you reach the source node (where `parent[node] == node`).
+  - **Final Step:** The backtracked list will be in reverse order (e.g., $5 \to 3 \to 4 \to 1$); reverse the list to get the final path.
+- **Complexity:** $O(E \log V)$ for Dijkstra + $O(V)$ for backtracking.
+
+**Code Snippet (C++):**
+
+```cpp
+// Inside Dijkstra relaxation
+if (dist[node] + weight < dist[adjNode]) {
+    dist[adjNode] = dist[node] + weight;
+    parent[adjNode] = node; // Store the predecessor
+    pq.push({dist[adjNode], adjNode});
+}
+
+// Reconstruction
+vector<int> path;
+while (parent[node] != node) {
+    path.push_back(node);
+    node = parent[node];
+}
+path.push_back(1); // Add source
+reverse(path.begin(), path.end());
+```
+
+---
+
+### Shortest Distance in a Binary Maze
+
+Finding the shortest path in an $N \times M$ grid of 0s and 1s (where 1 is a valid path).
+
+- **Optimization:** Since every movement between cells has a **constant weight of 1**, a standard **Queue (BFS)** is more efficient than a Priority Queue. A Queue naturally processes nodes in increasing order of distance (0, then 1, then 2...), avoiding the $O(\log N)$ overhead of a heap.
+- **Coordinate Management:** Use `deltaRow` and `deltaCol` arrays to explore the 4 adjacent directions (up, down, left, right).
+- **Complexity:** $O(N \times M)$.
+
+---
+
+### Path With Minimum Effort
+
+In this problem, "effort" is defined as the **maximum absolute difference** in height between two consecutive cells in a route. The goal is to find a path that minimizes this maximum difference.
+
+- **Dijkstra Variation:** Instead of summing weights, the distance array stores the **minimum effort** required to reach a cell.
+- **Relaxation Logic:**
+  - `newEffort = max(currentEffort, abs(heights[row][col] - heights[newRow][newCol]))`.
+  - Update the effort for the neighbor only if `newEffort` is less than the previously recorded effort for that cell.
+- **Complexity:** $O(E \log V)$, which translates to $O((N \times M \times 4) \log (N \times M))$ for a grid.
+
+---
+
+### Cheapest Flights Within K Stops
+
+Find the cheapest price from source to destination with **at most K intermediate stops**.
+
+- **The Challenge:** Standard Dijkstra prioritizes distance (price). However, a cheaper path might be invalid if it exceeds $K$ stops.
+- **The Solution:** Prioritize the **number of stops** in the traversal.
+- **BFS with Queue:** Since stops increase by exactly 1 at each step, a regular **Queue** works perfectly to process paths level-by-level based on stops.
+- **Logic:**
+  1.  Store `{stops, node, cost}` in the queue.
+  2.  Only relax an edge if `stops <= K`.
+  3.  Even if you reach the destination, **do not stop** the algorithm immediately, as a later path with more stops (but still $\le K$) might offer a cheaper price.
+
+---
+
+### Minimum Multiplications to Reach End
+
+Given a `start` and an `end`, find the minimum multiplications needed from a given array (all results modulo $10^5$) to reach the `end`.
+
+- **State Space BFS:** Each possible number from $0$ to $99,999$ (due to the modulo) is a node in the graph.
+- **Unit Weight:** Each multiplication counts as one step (weight 1), so **BFS (Queue)** is used.
+- **Algorithm:**
+  - Initialize a `dist` array of size $10^5$ with infinity.
+  - Pop a number from the queue, multiply it by every number in the multiplier array, and apply the modulo.
+  - If `dist[newNode]` can be improved, update it and push to the queue.
+- **Complexity:** Hypothetically $O(10^5 \times \text{size of multiplier array})$, though actual performance depends on reachable states.
