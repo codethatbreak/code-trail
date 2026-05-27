@@ -1,0 +1,94 @@
+---
+title: Minimum Spanning Tree
+---
+
+### Understanding the Spanning Tree
+
+A **spanning tree** is a subset of an undirected, weighted graph that satisfies the following conditions:
+
+- **Nodes and Edges:** If a graph has $n$ nodes, the spanning tree must contain exactly **$n$ nodes and $n-1$ edges**.
+- **Connectivity:** All nodes in the tree must be **reachable from each other** (it must be a single connected component).
+- **No Cycles:** By definition, a tree with $n$ nodes and $n-1$ edges that is connected cannot have cycles.
+
+A single graph can have multiple spanning trees depending on which $n-1$ edges are chosen to maintain connectivity.
+
+### Defining the Minimum Spanning Tree (MST)
+
+The **Minimum Spanning Tree** is the specific spanning tree where the **sum of all edge weights is the minimum** possible among all valid spanning trees for that graph.
+
+- A graph can have more than one MST if different sets of edges produce the same minimum sum.
+- Algorithms used to find the MST include **Prim's Algorithm** and **Kruskal's Algorithm**.
+
+---
+
+### Prim’s Algorithm
+
+Prim’s algorithm is a **greedy approach** used to find the MST sum and the specific edges involved.
+
+#### **A. Key Components and Data Structures**
+
+- **Priority Queue (Min-Heap):** Stores elements in the format **`{weight, node, parent}`**. It ensures that the node with the smallest edge weight is always processed first.
+- **Visited Array:** Tracks which nodes have already been included in the MST to avoid cycles and redundant processing.
+- **MST List/Sum:** A list to store the edges of the MST and a variable to accumulate the total weight.
+
+#### **B. The Step-by-Step Process**
+
+1.  **Initial Configuration:** Start with any node (e.g., node 0). Push `{0, 0, -1}` into the Priority Queue (weight 0, node 0, parent -1).
+2.  **Iterative Extraction:** While the Priority Queue is not empty:
+    - Pop the element with the **minimum weight**.
+    - **Check Visited:** If the node is already marked as visited, discard it and move to the next.
+    - **Add to MST:** If not visited, mark it as **visited**, add its weight to the total sum, and (if the parent is not -1) add the edge `{parent, node}` to the MST list.
+3.  **Explore Neighbors:** Iterate through all adjacent nodes of the current node:
+    - If a neighbor is **unvisited**, push `{edge_weight, neighbor, current_node}` into the Priority Queue.
+4.  **Completion:** The algorithm ends when the Priority Queue is empty, and the total sum represents the MST weight.
+
+---
+
+### Implementation Code (C++ Style)
+
+Based on the sources, here is the code to calculate the **sum of weights** of the MST.
+
+```cpp
+int spanningTree(int V, vector<vector<int>> adj[]) {
+    // Min-heap to store {weight, node}
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+    vector<int> vis(V, 0);
+
+    // Initial configuration: {weight, node}
+    pq.push({0, 0});
+    int sum = 0;
+
+    while (!pq.empty()) {
+        auto it = pq.top();
+        pq.pop();
+        int weight = it.first;
+        int node = it.second;
+
+        // If node is already part of MST, skip
+        if (vis[node] == 1) continue;
+
+        // Mark as visited and add weight to sum
+        vis[node] = 1;
+        sum += weight;
+
+        // Explore adjacent nodes
+        for (auto iter : adj[node]) {
+            int adjNode = iter;
+            int edW = iter;
+            if (!vis[adjNode]) {
+                pq.push({edW, adjNode});
+            }
+        }
+    }
+    return sum;
+}
+```
+
+_Note: To store the actual edges, you would modify the Priority Queue to store `{weight, node, parent}` as described in the algorithm steps._
+
+---
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(E \log E)$**. Every edge is added to the Priority Queue, and each insertion/extraction takes logarithmic time.
+- **Space Complexity:** **$O(V + E)$**. This includes the visited array ($V$), the Priority Queue (which can hold up to $E$ edges in the worst case), and the adjacency list.

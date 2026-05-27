@@ -1,0 +1,66 @@
+---
+title: Number of Ways to Arrive at Destination
+---
+
+### Problem Overview
+
+- **The Goal:** Given an undirected graph with $n$ intersections (nodes 0 to $n-1$) and roads with travel times (weights), find the number of ways you can travel from the **source (0)** to the **destination ($n-1$)** in the **shortest amount of time**,.
+- **Key Insight:** The problem is not asking for the shortest path distance, but rather the **count of all unique paths** that yield that minimum distance.
+- **Modulo Requirement:** Since the number of paths can be large, the result must be returned modulo $10^9 + 7$.
+
+### The Intuition: Why Standard Dijkstra Needs Modification
+
+A common mistake is to simply count how many times the destination is reached with the shortest distance. This is incorrect because paths can merge.
+
+- **Correct Logic:** If you reach a node via multiple predecessors (Node 1, Node 2, Node 3) and each path provides the same shortest distance, the total ways to reach that current node is the **sum of the ways** used to reach those predecessors.
+- **The "Ways" Tracking:** You must maintain a `ways` array alongside the standard `dist` array to track how many paths have arrived at each node with the current minimum distance.
+
+### Algorithm: Modified Dijkstra
+
+This solution uses a **Priority Queue (Min-Heap)** to explore nodes level-wise based on the shortest time.
+
+#### **Initial Configuration**
+
+1.  **Distance Array (`dist`):** Initialise all nodes to infinity, except the source: `dist = 0`,.
+2.  **Ways Array (`ways`):** Initialise all nodes to 0, except the source: `ways = 1` (there is only one way to start at the source),.
+3.  **Priority Queue (`pq`):** Push `{0, 0}` (representing `{distance, node}`) into the queue,.
+
+#### **Relaxation Logic**
+
+For every neighbor (`adjNode`) of the current node:
+
+- **Case 1: A Shorter Path is Found**
+  If `current_dist + edge_weight < dist[adjNode]`:
+  - Update `dist[adjNode]` with the new shorter distance.
+  - **Inherit the ways:** Set `ways[adjNode]` equal to `ways[node]` because all the shortest paths that reached the current node can now reach the neighbor,.
+  - Push the new distance and `adjNode` into the `pq`.
+- **Case 2: Another Path with the Same Shortest Distance is Found**
+  If `current_dist + edge_weight == dist[adjNode]`:
+  - **Accumulate the ways:** Add the current node's ways to the neighbor's existing ways: `ways[adjNode] = (ways[adjNode] + ways[node]) % MOD`.
+  - **Do not push to PQ:** Since the distance hasn't improved, there is no need to re-process the node’s neighbors in the queue,.
+
+### Implementation Logic (C++)
+
+```cpp
+// Inside the Dijkstra loop
+for (auto it : adj[node]) {
+    long long v = it.first;
+    long long wt = it.second;
+
+    // Case 1: First time reaching with a shorter distance
+    if (d + wt < dist[v]) {
+        dist[v] = d + wt;
+        ways[v] = ways[node]; // Inherit ways
+        pq.push({dist[v], v});
+    }
+    // Case 2: Reaching with the same minimal distance
+    else if (d + wt == dist[v]) {
+        ways[v] = (ways[v] + ways[node]) % mod; // Accumulate ways
+    }
+}
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(E \log V)$**. This follows the standard Dijkstra complexity where $E$ is the number of edges and $V$ is the number of vertices.
+- **Space Complexity:** **$O(V + E)$**. This accounts for the adjacency list, the distance array, the ways array, and the priority queue.

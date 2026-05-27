@@ -1,0 +1,65 @@
+---
+title: Dijkstra's Algorithm - Using Priority Queue
+---
+
+**Dijkstra's Algorithm** is a fundamental technique for finding the **shortest path** from a single source node to every other node in a weighted graph,. These notes detail the implementation using a **Priority Queue**, as described in the sources.
+
+### Core Concept and Representation
+
+- **Objective:** Given a source node, find the shortest distance to all nodes in the graph.
+- **Graph Representation:** Use an **adjacency list** where each node points to a list of pairs: `{neighbor_node, edge_weight}`.
+- **Data Structures Required:**
+  - **Priority Queue (Min-Heap):** Stores pairs in the format `{distance, node}`. It ensures that the node with the **smallest current distance** is always at the top.
+  - **Distance Array:** Initialized to a very large value (infinity) to track the shortest distance discovered so far for each node,,.
+
+### The Initial Configuration
+
+1.  Initialize the **distance array** with infinity,.
+2.  Set the distance of the **source node to 0**,.
+3.  Push the pair **`{0, source_node}`** into the Priority Queue,.
+
+### The Algorithmic Process (BFS-like Iteration)
+
+The algorithm iterates through the Priority Queue until it is empty.
+
+1.  **Pop:** Extract the topmost element `{dist, node}` from the min-heap.
+2.  **Explore:** For the current node, iterate through all its **adjacent neighbors** using the adjacency list,.
+3.  **Relaxation:** For each neighbor:
+    - Calculate the **new potential distance**: `dist (current node) + edge_weight`,.
+    - **Comparison:** If this `new_distance` is **less than** the distance currently stored for that neighbor in the distance array, you have found a shorter path,.
+    - **Update:** Update the distance array with the `new_distance` and push the pair `{new_distance, neighbor}` into the Priority Queue,.
+4.  **Discard:** If the `new_distance` is greater than or equal to the existing distance, ignore it,.
+
+### Complexity and Constraints
+
+- **Time Complexity:** **$O(E \log V)$**, where $E$ is the number of edges and $V$ is the number of vertices.
+- **Negative Weight Limitation:** Dijkstra's algorithm **does not work** for graphs containing **negative weight cycles**,.
+  - In such graphs, the algorithm can fall into an **infinite loop** because the distance will continue to decrease every time the negative edge is traversed, causing the algorithm to constantly push updated distances into the queue,.
+
+### Implementation Logic (C++ Style)
+
+```cpp
+// 1. Initial Configuration
+priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+vector<int> dist(V, 1e9); // Infinity
+dist[source] = 0;
+pq.push({0, source});
+
+// 2. BFS Iteration
+while(!pq.empty()) {
+    int d = pq.top().first;
+    int node = pq.top().second;
+    pq.pop();
+
+    for(auto it : adj[node]) {
+        int edgeWeight = it.second;
+        int adjNode = it.first;
+
+        // If a shorter path is found
+        if(d + edgeWeight < dist[adjNode]) {
+            dist[adjNode] = d + edgeWeight;
+            pq.push({dist[adjNode], adjNode});
+        }
+    }
+}
+```

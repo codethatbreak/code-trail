@@ -1,0 +1,51 @@
+---
+title: Find the City With the Smallest Number of Neighbours at a Threshold Distance
+---
+
+### Problem Statement
+
+The goal is to find a city that has the **fewest number of reachable cities** within a specific **distance threshold**.
+
+- **Reachable Condition:** A city is reachable if the shortest path to it is **at most** the given threshold.
+- **Tie-Breaking Rule:** If multiple cities have the same minimum number of reachable neighbors, you must return the city with the **greatest index** (the largest city number).
+
+### Core Strategy: All-Pairs Shortest Path
+
+To solve this, you must first determine the shortest distance between every single pair of cities in the graph.
+
+- **Primary Algorithm:** The **Floyd-Warshall Algorithm** is highly recommended for this task because it generates a 2D matrix of all-pairs shortest distances in a single execution.
+- **Alternative:** The problem can also be solved by running **Dijkstra’s Algorithm** multiple times, once for each node as a source.
+
+### Algorithmic Steps (Floyd-Warshall Approach)
+
+#### **Step 1: Initialization**
+
+1.  Create an $N \times N$ **distance matrix** and initialize all values to a very large number (like Infinity or $1e9$).
+2.  Set the distance from every city to itself to **0** (`dist[i][i] = 0`).
+3.  Fill the matrix with the weights of the given edges. Since the graph is **undirected**, you must fill the edges in both directions (`dist[u][v] = weight` and `dist[v][u] = weight`).
+
+#### **Step 2: Apply Floyd-Warshall**
+
+Iterate through the matrix using three nested loops (intermediate node $k$, source node $i$, and destination node $j$) to update shortest paths:
+
+- **Update Rule:** `dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])`.
+- **Optimization:** If either `dist[i][k]` or `dist[k][j]` is "Infinity," skip the update for that pair, as the path is not currently reachable via node $k$.
+
+#### **Step 3: Count Reachable Neighbors**
+
+After the matrix is fully computed, iterate through each city to count its neighbors:
+
+1.  For each city `i`, loop through all other cities `j`.
+2.  If `dist[i][j]` is **less than or equal to** the `distanceThreshold`, increment a counter for that city.
+
+#### **Step 4: Identify the Best City**
+
+1.  Maintain a `minCount` (initialized to a large value) and a `resultCity` (initialized to -1).
+2.  For each city's count:
+    - If `count < minCount`, update `minCount` and set `resultCity` to the current city index.
+    - If `count == minCount`, update `resultCity` to the current index to ensure the **largest city index** is returned in case of a tie.
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(N^3)$**. This is due to the three nested loops required for the Floyd-Warshall algorithm.
+- **Space Complexity:** **$O(N^2)$**. This is the space required to store the $N \times N$ 2D distance matrix.

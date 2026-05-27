@@ -1,0 +1,67 @@
+---
+title: Shortest Path in Undirected Graph with Unit Weights
+---
+
+### Problem Overview
+
+- **Input:** An undirected graph where every edge weight is **1**, and a specific **source node**.
+- **Goal:** Calculate the shortest distance from the source to every other node in the graph.
+- **Unreachable Nodes:** If a node cannot be reached from the source, its distance should be represented as **-1**.
+
+### Algorithm Choice: BFS
+
+While shortest path problems often use Dijkstra's algorithm, a **plain BFS** is sufficient and more efficient for graphs with unit weights. This is because BFS naturally explores a graph **level-wise**. In a unit-weight graph, the first time you encounter a node during a BFS, you have reached it via the shortest possible path.
+
+### Initial Configuration
+
+To implement this algorithm, you need the following setup:
+
+- **Adjacency List:** The graph must be represented as an adjacency list. Since it is undirected, ensure edges are added for both directions ($u \to v$ and $v \to u$).
+- **Distance Array:** An array (typically size $N$) initialized to **Infinity** (or a very large number like $10^9$) to store the shortest distance to each node.
+- **Queue:** A standard FIFO queue to manage the nodes during traversal.
+
+### Step-by-Step Process
+
+1.  **Initialize:** Set the distance of the **source node to 0** in the distance array and push the source node into the queue.
+2.  **The BFS Loop:** While the queue is not empty:
+    - Pop the front node.
+    - Iterate through all its **adjacent neighbors**.
+3.  **Relaxation:** For each neighbor:
+    - Check if the distance to the current node plus the unit weight (1) is **less than** the neighbor's current recorded distance.
+    - **If it is shorter:** Update the distance array with this new value and **push the neighbor into the queue** so its own neighbors can be processed later.
+4.  **Completion:** Once the queue is empty, iterate through the distance array one last time. Any node still marked as "Infinity" was unreachable; change its value to **-1**.
+
+### Implementation Logic (C++)
+
+```cpp
+// 1. Initialize distance array with 1e9 and source with 0
+vector<int> dist(n, 1e9);
+dist[source] = 0;
+
+// 2. BFS using a queue
+queue<int> q;
+q.push(source);
+
+while(!q.empty()) {
+    int node = q.front();
+    q.pop();
+
+    for(auto it : adj[node]) {
+        // If the new path is shorter, update and push to queue
+        if(dist[node] + 1 < dist[it]) {
+            dist[it] = 1 + dist[node];
+            q.push(it);
+        }
+    }
+}
+// 3. Convert unreachable 1e9 values to -1
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(V + 2E)$**. This is the standard complexity of a BFS traversal, where $V$ is the number of vertices and $E$ is the number of edges.
+- **Space Complexity:** **$O(V + E)$**. This includes the space for the adjacency list ($O(V+2E)$), the distance array ($O(V)$), and the queue data structure ($O(V)$).
+
+### Why BFS and not Dijkstra?
+
+In a unit-weight graph, the distances in the queue will always be **naturally sorted** (e.g., all distance-1 nodes are processed before distance-2 nodes). Because the queue is already sorted by distance, you do not need the overhead of a priority queue or a sorted data structure used in Dijkstra's algorithm.

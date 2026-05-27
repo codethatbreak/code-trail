@@ -1,0 +1,84 @@
+---
+title: Articulation Point
+---
+
+### Definition of an Articulation Point
+
+An **articulation point** is any node in a graph whose removal results in the graph breaking into **multiple separate components**. For example, in a specific graph, nodes like 0 or 2 might be articulation points if their deletion disconnects the remaining nodes, whereas a node like 3 is not an articulation point if the graph remains connected after its removal.
+
+### Prerequisites and Data Structures
+
+Finding articulation points requires a solid understanding of the "Bridges in a Graph" algorithm. It utilizes two main arrays and a timer:
+
+- **Time of Insertion (`tin`):** The step/time at which a node was first visited during a DFS traversal.
+- **Lowest Time of Insertion (`low`):** The minimum `tin` reachable from the current node (and its subtree) through a back-edge, excluding its parent and visited paths that don't belong to the current DFS branch.
+- **Timer:** A global counter used to assign arrival times to nodes.
+
+### The Algorithm Logic
+
+The algorithm uses **DFS** to explore the graph and check for connectivity dependencies.
+
+#### **A. The Standard Condition (Non-Starting Nodes)**
+
+For an edge from a `node` to a neighbor `it`, the `node` is an articulation point if:
+**`low[it] >= tin[node]` AND `parent != -1`**.
+
+- **Intuition:** This means that the neighbor `it` (and all nodes in its subtree) cannot reach any node visited **before** the current `node`. Unlike bridges, where the condition is strictly greater than (`>`), here it is **greater than or equal to (`>=`)** because even if the neighbor can reach back to the `node` itself, the `node` is being removed, so that connection becomes useless.
+
+#### **B. The Starting Point (Source) Logic**
+
+The standard formula does not apply to the starting node of a DFS.
+
+- A starting node is an articulation point **only if it has more than one child** in the DFS tree.
+- If the source has only one child, removing it just leaves the rest of the single component intact; if it has multiple children, removing it splits those children into separate components.
+
+### Key Differences from the Bridges Algorithm
+
+There are two subtle but critical changes compared to the Bridges algorithm:
+
+1.  **Visited Node Update:** If a neighbor `it` is already visited (and is not the parent), we update `low[node]` using **`tin[it]`** instead of `low[it]`.
+    - **Why?** This prevents the algorithm from incorrectly thinking a node can reach "above" the current node via a path that might actually pass through the node being removed.
+2.  **Condition:** As mentioned, the check is `low[it] >= tin[node]` rather than `low[it] > tin[node]`.
+
+### Handling Multiple Hits
+
+A single node might satisfy the articulation point condition through multiple neighbors or children.
+
+- **The Mark Array:** Instead of printing a node every time it satisfies the condition, use a **hash or mark array** to record that the node is an articulation point.
+- At the end of the traversal, iterate through the mark array to collect the unique nodes.
+
+### Implementation Logic (C++)
+
+```cpp
+void dfs(int node, int parent, vector<int> &vis, int tin[], int low[], vector<int> &mark, vector<int> adj[]) {
+    vis[node] = 1;
+    tin[node] = low[node] = timer++;
+    int child = 0; // Track children for starting node logic
+
+    for (auto it : adj[node]) {
+        if (it == parent) continue;
+        if (!vis[it]) {
+            dfs(it, node, vis, tin, low, mark, adj);
+            low[node] = min(low[node], low[it]);
+
+            // Check condition for non-starting nodes
+            if (low[it] >= tin[node] && parent != -1) {
+                mark[node] = 1;
+            }
+            child++;
+        } else {
+            // Update using tin[it] for visited nodes
+            low[node] = min(low[node], tin[it]);
+        }
+    }
+    // Final check for the starting node
+    if (child > 1 && parent == -1) {
+        mark[node] = 1;
+    }
+}
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(V + 2E)$**, which is the same as a standard DFS traversal.
+- **Space Complexity:** **$O(3N)$**, required for the `vis`, `tin`, and `low` arrays.

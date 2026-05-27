@@ -1,0 +1,81 @@
+---
+title: Course Schedule I and II
+---
+
+### Problem Overview
+
+The Course Schedule problems involve a set of $N$ tasks (labeled from $0$ to $n-1$) where some tasks have **prerequisites**.
+
+- **Course Schedule I:** Given the total number of tasks and a list of prerequisite pairs, determine if it is **possible to finish all tasks**.
+- **Course Schedule II:** Instead of just a "yes" or "no," you must return the **actual linear ordering** of tasks to finish them all. If it is impossible, return an empty array.
+
+### Core Intuition: Prerequisites as Directed Edges
+
+The relationship "task $u$ must be done before task $v$" can be expressed as a **directed edge** $u \to v$.
+
+- **Topological Sort Connection:** A linear ordering where $u$ appears before $v$ for every edge $u \to v$ is exactly what a topological sort provides.
+- **The Cycle Problem:** If there is a **cyclic dependency** (e.g., task 1 before task 2, task 2 before task 4, and task 4 before task 1), it is impossible to perform any of those tasks because none can be completed first.
+- **Conclusion:** The tasks can be completed **only if the graph is a Directed Acyclic Graph (DAG)**.
+
+### Algorithmic Approach
+
+While both DFS (cycle detection) and BFS (Kahn's Algorithm) can solve these problems, **Kahn's Algorithm (BFS)** is often preferred because it directly generates the ordering required for Course Schedule II.
+
+#### Step-by-Step Implementation:
+
+1.  **Build the Adjacency List:**
+    - In **Course Schedule I**, a pair `` typically means $1$ is a prerequisite for $0$, so the edge is $1 \to 0$.
+    - **Course Schedule II** follows the same logic: an edge exists from the prerequisite to the task.
+2.  **Calculate In-Degrees:** For every node, count how many incoming edges it has.
+3.  **Kahn’s Algorithm (BFS):**
+    - Push all nodes with an **in-degree of 0** (tasks with no prerequisites) into a queue.
+    - While the queue is not empty, pop a node, add it to your topological sort list, and reduce the in-degrees of its neighbors.
+    - If a neighbor's in-degree becomes 0, push it into the queue.
+4.  **Final Validation:**
+    - **For Part I:** If the number of nodes in your topological sort equals $N$, return `true` (no cycle); otherwise, return `false`.
+    - **For Part II:** If the count equals $N$, return the sorted list; otherwise, return an empty array.
+
+### Implementation Code (C++ Style)
+
+The source explains that the primary difference between the two problems is the input order of pairs and the return type.
+
+```cpp
+vector<int> findOrder(int V, vector<vector<int>>& prerequisites) {
+    // 1. Build the graph and calculate in-degrees
+    vector<int> adj[V];
+    vector<int> indegree(V, 0);
+    for (auto it : prerequisites) {
+        // means 1 -> 0
+        adj[it].push_back(it);
+        indegree[it]++;
+    }
+
+    // 2. Initial Queue with 0-dependency nodes
+    queue<int> q;
+    for (int i = 0; i < V; i++) {
+        if (indegree[i] == 0) q.push(i);
+    }
+
+    // 3. BFS Traversal
+    vector<int> topo;
+    while (!q.empty()) {
+        int node = q.front();
+        q.pop();
+        topo.push_back(node);
+
+        for (auto it : adj[node]) {
+            indegree[it]--;
+            if (indegree[it] == 0) q.push(it);
+        }
+    }
+
+    // 4. Return result based on if a cycle was found
+    if (topo.size() == V) return topo;
+    return {}; // Empty array for impossible case
+}
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(V + E)$**, where $V$ is the number of tasks and $E$ is the number of prerequisites.
+- **Space Complexity:** **$O(V + E)$** to store the adjacency list, in-degree array, and queue.

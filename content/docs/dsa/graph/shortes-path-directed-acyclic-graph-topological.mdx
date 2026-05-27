@@ -1,0 +1,73 @@
+---
+title: Shortest Path in Directed Acyclic Graph Using Toplogical Sort
+---
+
+### Problem Definition
+
+- **Input:** A Directed Acyclic Graph (DAG) where each edge has an assigned **weight**.
+- **Goal:** Find the shortest distance from a designated **source node** (usually node 0) to all other nodes in the graph.
+- **Initial Setup:** A distance array is initialized where the source node is set to **0** and all other nodes are set to **infinity** (`INT_MAX`).
+
+### The Two-Step Algorithm
+
+The algorithm combines topological sorting with the "relaxation" of edges to find the shortest path in linear time.
+
+#### **Step 1: Perform Topological Sort**
+
+- Conduct a **topological sort** on the graph using either DFS or BFS.
+- In the **DFS approach**, a **stack** is used. A node is pushed onto the stack only after its DFS call (visiting all its neighbors) is completely finished.
+- The resulting stack contains the nodes in a linear ordering where if an edge $u \to v$ exists, $u$ appears before $v$.
+
+#### **Step 2: Relax the Edges**
+
+- Take nodes out of the stack one by one.
+- For each popped node:
+  1.  Check the current distance to that node from the distance array.
+  2.  Iterate through all its **adjacent neighbors**.
+  3.  **Relax the edge:** Calculate the new potential distance to the neighbor (`distance[node] + edge_weight`).
+  4.  If this new distance is **less than** the existing distance in the array, update the neighbor's distance with the smaller value.
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(N + M)$**, where $N$ is the number of nodes and $M$ is the number of edges.
+  - The topological sort takes $O(N + M)$.
+  - The relaxation step also takes $O(N + M)$ because every node is popped once and every edge is checked once.
+- **Space Complexity:** **$O(N + M)$** to store the adjacency list (including weights), the visited array, the stack, and the distance array.
+
+### Intuition: Why Topological Sort Works
+
+- **Reachability Ordering:** Topological sort moves according to **reachability**. It processes the "first" reachable nodes first.
+- **Pre-computed Dependencies:** By the time the algorithm reaches a specific node in the topological order, it is guaranteed that **all possible nodes that could lead to it** have already been processed and their distances minimized.
+- **Efficiency:** Because you process nodes in this specific order, you only need a single pass through the edges ($O(N+M)$), which is more efficient than standard algorithms like Dijkstra for this specific graph type.
+
+### Implementation Logic (C++)
+
+```cpp
+// 1. Create Graph with pairs: {neighbor, weight}
+vector<pair<int, int>> adj[N];
+
+// 2. Step 1: Standard DFS-based Topo Sort pushing to a Stack
+void topoSort(int node, vector<int> &vis, stack<int> &st, vector<pair<int, int>> adj[]) {
+    vis[node] = 1;
+    for (auto it : adj[node]) {
+        if (!vis[it.first]) topoSort(it.first, vis, st, adj);
+    }
+    st.push(node);
+}
+
+// 3. Step 2: Relaxation using the Stack
+while (!st.empty()) {
+    int node = st.top(); st.pop();
+    // Only process if the node has been reached from the source
+    if (dist[node] != INT_MAX) {
+        for (auto it : adj[node]) {
+            int v = it.first;
+            int wt = it.second;
+            // Update if a shorter path is found
+            if (dist[node] + wt < dist[v]) {
+                dist[v] = dist[node] + wt;
+            }
+        }
+    }
+}
+```

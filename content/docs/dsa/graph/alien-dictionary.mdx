@@ -1,0 +1,70 @@
+---
+title: Alien Dictionary
+---
+
+### Problem Overview
+
+The problem asks to find the character order in an alien language given $N$ sorted words and $K$ starting alphabets. While standard English dictionaries follow a fixed order (A to Z), this alien language has its own unique sequence that must be derived from the given sorted words. If the derived order is correct, the output is typically 1; otherwise, it is 0.
+
+### Core Intuition: "Something Before Something"
+
+The fundamental logic of the problem is identifying which character appears before another.
+
+- **Comparison Logic:** To find the order, you compare adjacent pairs of words (e.g., word $i$ and word $i+1$).
+- **Differentiating Factor:** You iterate through the characters of both strings simultaneously. The **first non-matching character** determines the relative order.
+  - _Example:_ If "BAA" appears before "ABCD", the first characters 'B' and 'A' are different. This implies that in the alien order, **B appears before A** ($B \to A$).
+- **Directed Graph:** These relationships are represented as **directed edges** in a graph. Once all adjacent pairs are compared and edges are created, the problem becomes finding a linear ordering that satisfies these dependencies, which is the definition of a **Topological Sort**.
+
+### The Algorithm Steps
+
+1.  **Map Characters to Numbers:** To simplify implementation, map alien alphabets to 0-based integers (e.g., 'a' $\to$ 0, 'b' $\to$ 1) by subtracting 'a' from the character.
+2.  **Build the Adjacency List:**
+    - Iterate through the dictionary from $i = 0$ to $N-2$ to compare pairs of strings.
+    - For each pair, find the first index `ptr` where characters differ.
+    - Add a directed edge from `s1[ptr]` to `s2[ptr]` in the adjacency list.
+    - **Note:** Once the first difference is found, stop comparing that pair and move to the next pair of words.
+3.  **Handle Disconnected Nodes:** If $K$ specifies more alphabets than those appearing in the differentiating factors, these characters exist as single nodes in the graph and can appear anywhere in the final order.
+4.  **Perform Topological Sort:** Use either BFS (Kahn’s Algorithm) or DFS to find the topological ordering of the $K$ nodes.
+5.  **Format Output:** Convert the resulting integer sequence back into characters by adding 'a' and return it as a string.
+
+### Implementation Code (C++ Style)
+
+```cpp
+string findOrder(string dict[], int N, int K) {
+    // 1. Create Adjacency List for K alphabets
+    vector<int> adj[K];
+    for (int i = 0; i < N - 1; i++) {
+        string s1 = dict[i], s2 = dict[i + 1];
+        int len = min(s1.size(), s2.size());
+        for (int ptr = 0; ptr < len; ptr++) {
+            if (s1[ptr] != s2[ptr]) {
+                // Directed edge: s1[ptr] -> s2[ptr]
+                adj[s1[ptr] - 'a'].push_back(s2[ptr] - 'a');
+                break; // Stop after the first difference
+            }
+        }
+    }
+
+    // 2. Perform Standard Topological Sort (e.g., Kahn's or DFS)
+    vector<int> topo = topoSort(K, adj);
+
+    // 3. Convert numbers back to string characters
+    string ans = "";
+    for (auto it : topo) {
+        ans = ans + (char)(it + 'a'); //
+    }
+    return ans;
+}
+```
+
+### When an Order is Not Possible
+
+The source notes two specific "follow-up" cases where a dictionary order is impossible:
+
+- **Prefix Contradiction:** If a larger string appears before a shorter string and all characters of the shorter string match the start of the larger one (e.g., "ABCD" before "ABC"), the dictionary is invalid.
+- **Cyclic Dependency:** If the characters create a cycle (e.g., 'a' before 'b' and 'b' before 'a'), a topological sort is impossible, and the order is invalid.
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(N \times \text{length of strings} + K + E)$**. Comparing all pairs takes $O(N \times \text{length})$, and performing the topological sort takes $O(K + E)$.
+- **Space Complexity:** **$O(K + E)$** to store the adjacency list and the $K$ alphabets.
