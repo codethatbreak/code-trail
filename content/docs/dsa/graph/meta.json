@@ -1,0 +1,9 @@
+{
+  "pages": [
+    "connected-components",
+    "breadth-first-search",
+    "depth-first-search",
+    "problem-set-1",
+    "detect-cycle-undirected-bfs.mdx"
+  ]
+}

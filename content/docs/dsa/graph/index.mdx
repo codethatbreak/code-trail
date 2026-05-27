@@ -1,0 +1,76 @@
+---
+title: Graph
+---
+
+## Introdcution
+
+A graph is a data structure consisting of nodes (also called vertices) connected by edges.
+
+- **Nodes/Vertices**: These are typically represented by numbers. There is no specific order required for numbering them.
+
+- **Edges**: These are the lines connecting two nodes. They represent the relationship or connectivity between them.
+
+## Types of Graphs
+
+Graphs are generally classified into two main types based on the nature of their edges:
+
+### Undirected Graph
+
+Edges are bi-directional. If an edge exists between node $u$ and $v$, it implies connectivity from $u$ to $v$ and from $v$ to $u$.
+
+### Directed Graph
+
+Edges have a specific direction (represented by arrows). If there is a directed edge from $u$ to $v$, you can travel from $u$ to $v$, but you cannot return to $u$ unless there is another explicit edge.
+
+### Weighted Graphs
+
+Every edge can be assigned a specific weight (a numerical value). If no weight is assigned, it is assumed to have a unit weight of 1.
+
+## Key Concepts and Terminologies
+
+### Cycles
+
+A cycle occurs when you can start at a node and reach back to the same node through a sequence of edges.
+
+- **Cyclic Graph**: Contains at least one cycle.
+- **Acyclic Graph**: Contains no cycles. A **Directed Acyclic Graph (DAG)** is a common term for a directed graph with no cycles.
+
+### Path
+
+A sequence of nodes where each adjacent node in the sequence has an edge between them. In a standard path, a node cannot appear twice.
+
+### Degree
+
+**Undirected Graph:**
+
+- The **degree** of a node is the total number of edges attached to it.
+- **Property**: The total degree of an undirected graph is equal to twice the number of edges ($2 E$).
+
+**Directed Graph:**
+
+- **In-degree**: Number of incoming edges to a node.
+- **Out-degree**: Number of outgoing edges from a node.
+
+## Graph Representation in Programming
+
+When implementing graphs, the input usually consists of the number of nodes ($N$) and the number of edges ($E$), followed by $E$ lines specifying the connections.
+
+### Adjacency Matrix
+
+This method uses a 2D array of size $N \times N$ (for 1-based indexing).
+
+- **Storage**: If there is an edge between $u$ and $v$, `matrix[u][v]` is set to 1. For undirected graphs, `matrix[v][u]` is also set to 1.
+- **Space Complexity**: $O(N^2)$, which is considered costly for graphs with many nodes but few edges.
+- **Weighted Graphs**: Instead of storing 1, the matrix stores the actual edge weight.
+
+### Adjacency List
+
+This is a more space-efficient method using an array of vectors (in C++) or lists.
+
+- **Storage**: Each index in the array represents a node and contains a list of its adjacent neighbors.
+  - **Undirected**: `list[u].push_back(v)` and `list[v].push_back(u)`.
+  - **Directed**: Only `list[u].push_back(v)` is required.
+- **Space Complexity**:
+  - Undirected: $O(N + 2E)$
+  - Directed: $O(N + E)$
+- **Weighted Graphs**: The list stores pairs of integers, where each pair consists of (neighboring node, edge weight).

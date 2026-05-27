@@ -1,0 +1,90 @@
+---
+title: Breadth First Search (BFS)
+---
+
+### Definition and Concept
+
+- **Breadth-First Search (BFS)** is a fundamental traversal technique used to visit all nodes in a graph.
+- It is also known as **level-wise traversal**.
+- The traversal begins at a designated starting node (Level 0), then visits all its immediate neighbors (Level 1), then their neighbors (Level 2), and so on.
+- **Breadth vs. Depth:** BFS moves "outward" in the breadth-wise manner, ensuring all nodes at a specific distance from the start are visited before moving deeper.
+
+### Initial Configuration
+
+To perform BFS, you need the following setup:
+
+- **Queue Data Structure:** A **FIFO** (First In, First Out) queue is used to keep track of nodes to be visited.
+- **Visited Array:** An array (typically size $N+1$ or $N$) is required to track which nodes have already been "touched" or traversed. This prevents the algorithm from getting stuck in infinite loops.
+- **Adjacency List:** The graph should be represented as an adjacency list to easily identify the neighbors of any given node.
+
+### The BFS Algorithm (Step-by-Step)
+
+1.  **Initialization:** Push the starting node into the queue and mark it as **visited** (set to 1) in the visited array.
+2.  **The Loop:** While the queue is **not empty**:
+    - Take the front element out of the queue (pop) and add it to your BFS result list.
+    - Identify all **neighbors** of this node using the adjacency list.
+    - For each neighbor:
+      - Check if it has been **previously visited** using the visited array.
+      - **If not visited:** Mark it as visited and push it into the queue.
+3.  **Completion:** Once the queue is empty, the BFS traversal for that connected component is complete.
+
+### Key Characteristics
+
+- **Starting Node Influence:** The BFS sequence depends entirely on the starting node; changing the starting node changes the levels and the traversal order.
+- **Order within Levels:** While nodes must be visited level by level, the specific order in which you visit nodes _within_ the same level does not matter as long as they are all processed before the next level.
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(N + 2E)$** for undirected graphs.
+  - Each node ($N$) is pushed and popped from the queue exactly once.
+  - The algorithm iterates through the total degrees of all nodes, which equals twice the number of edges ($2E$).
+- **Space Complexity:** **$O(N)$**.
+  - This includes the space for the queue, the visited array, and the list used to store the BFS result (roughly $3N$, which simplifies to $O(N)$).
+
+To complete your notes on **Breadth-First Search (BFS)**, here is the implementation in both C++ and Java based on the logic and structure described in the sources.
+
+### Implementation Code
+
+#### C++
+
+The C++ implementation typically uses a `vector` for the adjacency list and the result, along with a standard `queue`.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<int> bfsOfGraph(int n, vector<int> adj[]) {
+    // 1. Initial Configuration: Visited array and Queue
+    int vis[n] = {0};
+    vis[0] = 1; // Assuming 0-based indexing and starting from node 0
+    queue<int> q;
+    q.push(0);
+
+    vector<int> bfs;
+
+    // 2. Traversal Loop: Continue until the queue is empty
+    while(!q.empty()) {
+        // Take the node out and add to result
+        int node = q.front();
+        q.pop();
+        bfs.push_back(node);
+
+        // 3. Explore Neighbors: Check the adjacency list
+        for(auto it : adj[node]) {
+            // If neighbor is not visited, mark and push to queue
+            if(!vis[it]) {
+                vis[it] = 1;
+                q.push(it);
+            }
+        }
+    }
+    return bfs; //
+}
+```
+
+### **Key Logic Summary**
+
+- **The Visited Array:** This is critical to ensure that each node is "touched" or traversed only once, preventing infinite loops in cyclic graphs.
+- **The Queue:** Acts as the engine for **level-wise traversal**. It ensures that all nodes at a distance $d$ from the start are processed before nodes at distance $d+1$.
+- **Adjacency List:** This data structure is used to efficiently fetch all neighbors of a popped node.
+- **Directed vs. Undirected:** Although the logic is often explained using undirected graphs, the same BFS code works for **directed graphs** as long as you use the appropriate adjacency list.
