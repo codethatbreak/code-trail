@@ -1,0 +1,74 @@
+---
+title: Detect Cycle in Undirected Graph Using BFS
+---
+
+### Concept and Intuition
+
+- **Definition of a Cycle:** A cycle exists in a graph if you can start from a specific node, traverse through other nodes, and eventually return to that same starting node.
+- **The BFS Collision Logic:** BFS is a level-wise traversal technique. The intuition for cycle detection is that if you start a traversal and follow different paths that eventually "collide" at the same node, a cycle must exist.
+- **The "Parent" Node Challenge:** In an undirected graph, every edge is bi-directional. If you move from node 1 to node 2, node 2 will naturally list node 1 as a neighbor. This back-and-forth movement is **not** a cycle.
+- **The Solution:** To distinguish between a natural back-link and a genuine cycle, you must keep track of the **parent node** (the node you just came from). If you encounter a neighbor that is **already visited** and is **not the parent**, then a cycle is detected.
+
+### Algorithm Steps
+
+1.  **Initial Configuration:**
+    - Create a **visited array** initialized to zero.
+    - Use a **queue** that stores a **pair of integers**: `{node, parent}`. The parent for the very first node (source) is typically set to -1.
+2.  **The Traversal:**
+    - Pop the front element `{node, parent}` from the queue.
+    - Iterate through all adjacent neighbors of the current node.
+3.  **Conditionals for Neighbors:**
+    - **If the neighbor is unvisited:** Mark it as visited and push it into the queue as `{neighbor, current_node}`.
+    - **If the neighbor is already visited:**
+      - Check if `neighbor == parent`. If it is the parent, do nothing (this is just the path you came from).
+      - If `neighbor != parent`, then someone else has already touched this node before you reached it through this path. This confirms a **cycle**.
+4.  **Handling Connected Components:** To ensure the algorithm works for graphs broken into multiple pieces, wrap the BFS call in a loop that iterates through all nodes (1 to $N$). Only trigger the BFS if a node has not been visited yet.
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(N + 2E)$**. This is the same as a standard BFS because every node is visited once and every edge is traversed twice (once from each end) in an undirected graph.
+- **Space Complexity:** **$O(N)$**. This includes the space for the visited array ($O(N)$) and the queue data structure ($O(N)$).
+
+---
+
+### Implementation Code
+
+#### C++
+
+```cpp
+bool detect(int src, vector<int> adj[], int vis[]) {
+    vis[src] = 1;
+    // Queue stores {child, parent}
+    queue<pair<int, int>> q;
+    q.push({src, -1});
+
+    while(!q.empty()) {
+        int node = q.front().first;
+        int parent = q.front().second;
+        q.pop();
+
+        for(auto adjacentNode : adj[node]) {
+            if(!vis[adjacentNode]) {
+                vis[adjacentNode] = 1;
+                q.push({adjacentNode, node});
+            }
+            // Cycle condition: visited and NOT the parent
+            else if(parent != adjacentNode) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool isCycle(int V, vector<int> adj[]) {
+    int vis[V] = {0};
+    // Loop to handle multiple connected components
+    for(int i = 0; i < V; i++) {
+        if(!vis[i]) {
+            if(detect(i, adj, vis)) return true;
+        }
+    }
+    return false;
+}
+```

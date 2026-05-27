@@ -1,0 +1,66 @@
+---
+title: Depth First Search (DFS)
+---
+
+### Definition and Concept
+
+- **Depth-First Search (DFS)** is the second major traversal technique after BFS.
+- Unlike BFS (which is level-wise), DFS is based on **depth**.
+- The core idea is to start at a node, pick a neighbor, and immediately go as deep as possible through that neighbor's path before backtracking to explore other branches.
+- **Recursive Nature:** The algorithm uses **recursion** to explore a path until it reaches a dead end (no more unvisited neighbors), then it "comes back" to the previous node to check for remaining neighbors.
+
+### Initial Configuration
+
+To perform DFS, you need:
+
+- **Adjacency List:** The graph must be stored in an adjacency list to efficiently access the neighbors of each node.
+- **Visited Array:** A boolean or integer array (size $N$ or $N+1$) initialized to 0/false. This prevents the algorithm from visiting the same node twice and getting stuck in cycles.
+- **Starting Node:** A designated node from which the traversal begins.
+
+### The DFS Algorithm (Logic)
+
+1.  **Mark and Store:** When you visit a node, mark it as **visited** in the array and add it to your DFS result list.
+2.  **Explore Neighbors:** Look at the neighbors of the current node using the adjacency list.
+3.  **Recursive Call:** For every neighbor:
+    - **If the neighbor is unvisited:** Immediately call the DFS function recursively for that neighbor.
+    - **If the neighbor is already visited:** Skip it and check the next neighbor.
+4.  **Backtrack:** Once all neighbors of a node are either visited or processed, the recursive call for that node completes, and the control returns to the previous node in the stack.
+
+### Complexity Analysis
+
+- **Time Complexity:**
+  - **Undirected Graphs:** **$O(N + 2E)$**, where $N$ is the number of nodes and $E$ is the number of edges. This is because every node is visited once, and for each node, the algorithm iterates through its degree (sum of degrees equals $2E$).
+  - **Directed Graphs:** **$O(N + E)$**.
+- **Space Complexity:** **$O(N)$**.
+  - This accounts for the visited array ($O(N)$), the list storing the traversal, and the **recursion stack space**. In the worst case (a skewed graph), the stack depth can be $N$.
+
+---
+
+### Implementation Code
+
+#### C++
+
+```cpp
+void dfs(int node, vector<int> adj[], int vis[], vector<int> &ls) {
+    // Mark the current node as visited
+    vis[node] = 1;
+    ls.push_back(node);
+
+    // Traverse all neighbors of the current node
+    for(auto it : adj[node]) {
+        // If the neighbor is not visited, call DFS recursively
+        if(!vis[it]) {
+            dfs(it, adj, vis, ls);
+        }
+    }
+}
+
+// Main function call
+vector<int> dfsOfGraph(int V, vector<int> adj[]) {
+    int vis[V] = {0};
+    int start = 0; // Starting from node 0
+    vector<int> ls;
+    dfs(start, adj, vis, ls);
+    return ls;
+}
+```

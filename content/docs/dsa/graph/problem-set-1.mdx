@@ -1,0 +1,139 @@
+---
+title: Problems Set 1
+---
+
+### Number of Provinces (Connected Components)
+
+The goal is to find the number of disconnected groups in a graph where nodes in a group can reach each other via paths.
+
+- **Logic:** Use a **visited array** (size $V+1$) initialized to 0. Iterate through all nodes from 1 to $V$. If a node is not visited, it marks a new province; increment a counter and call a traversal (DFS or BFS) to mark all reachable nodes in that component.
+- **Data Representation:** If given an **adjacency matrix**, it is often converted to an **adjacency list** for efficient traversal.
+- **Complexity:**
+  - **Time:** $O(N) + O(V + 2E)$ as every node and edge is processed.
+  - **Space:** $O(N)$ for the visited array and recursion stack.
+
+**Code Implementation (DFS Approach):**
+
+```cpp
+void dfs(int node, vector<int> adj[], int vis[]) {
+    vis[node] = 1; // Mark node visited
+    for(auto it : adj[node]) {
+        if(!vis[it]) dfs(it, adj, vis); // Recurse for unvisited neighbors
+    }
+}
+
+int numProvinces(vector<vector<int>> adjMatrix, int V) {
+    int vis[V] = {0}, cnt = 0;
+    for(int i = 0; i < V; i++) {
+        if(!vis[i]) { // New province found
+            cnt++;
+            dfs(i, adjList, vis);
+        }
+    }
+    return cnt; //
+}
+```
+
+---
+
+### Number of Islands (8-Directional Grid Connectivity)
+
+This problem counts connected "land" cells ('1') in an $N \times M$ grid, where connectivity is defined in **all 8 directions** (horizontal, vertical, and diagonal).
+
+- **Logic:** Traverse the grid cell by cell. When you find unvisited land, it represents the start of a new island. Trigger a **BFS** to visit and mark all connected land cells.
+- **Neighbor Shortcut:** To avoid writing eight separate lines for neighbors, use nested loops for $\Delta row$ and $\Delta col$ from -1 to +1.
+- **Complexity:** Time: $O(N \times M)$, Space: $O(N \times M)$.
+
+**Code Implementation (BFS Approach):**
+
+```cpp
+void bfs(int r, int c, vector<vector<int>>& vis, vector<vector<char>>& grid) {
+    vis[r][c] = 1;
+    queue<pair<int, int>> q;
+    q.push({r, c}); //
+    while(!q.empty()) {
+        int row = q.front().first;
+        int col = q.front().second;
+        q.pop(); //
+        // Shortcut for 8 neighbors
+        for(int delrow = -1; delrow <= 1; delrow++) {
+            for(int delcol = -1; delcol <= 1; delcol++) {
+                int nrow = row + delrow, ncol = col + delcol;
+                if(nrow >= 0 && nrow < n && ncol >= 0 && ncol < m
+                   && grid[nrow][ncol] == '1' && !vis[nrow][ncol]) {
+                    vis[nrow][ncol] = 1;
+                    q.push({nrow, ncol}); //
+                }
+            }
+        }
+    }
+}
+```
+
+---
+
+### Flood Fill Algorithm (4-Directional Color Change)
+
+Starting from a pixel $(sr, sc)$, change its color and all connected pixels of the **same initial color** to a `newColor`.
+
+- **Logic:** Perform a **DFS** (or BFS) starting from the target pixel. Only visit neighbors that match the original `initialColor`.
+- **Best Practice:** Do **not tamper** with the original input data. Create a copy of the image to perform and return the flood fill.
+- **Complexity:** Time: $O(N \times M)$, Space: $O(N \times M)$.
+
+**Code Implementation (DFS Approach):**
+
+```cpp
+void dfs(int r, int c, vector<vector<int>>& ans, vector<vector<int>>& image, int newColor, int delRow[], int delCol[], int initColor) {
+    ans[r][c] = newColor; //
+    for(int i = 0; i < 4; i++) {
+        int nr = r + delRow[i], nc = c + delCol[i];
+        // Check bounds, matching initial color, and not already updated
+        if(nr >= 0 && nr < n && nc >= 0 && nc < m
+           && image[nr][nc] == initColor && ans[nr][nc] != newColor) {
+            dfs(nr, nc, ans, image, newColor, delRow, delCol, initColor);
+        }
+    }
+}
+```
+
+---
+
+### Rotten Oranges (Multi-Source BFS for Minimum Time)
+
+Determine the **minimum time** for all fresh oranges to rot. A rotten orange rots its 4-directional neighbors every unit of time.
+
+- **Logic:** Since rotting happens simultaneously from multiple sources, **BFS is mandatory** for calculating minimum time.
+- **Implementation:** Initialize a queue with **all** oranges that are rotten at $t=0$. Store each entry as a triplet or pair: `{{row, col}, time}`.
+- **Final Check:** After BFS, verify if any fresh oranges remain; if so, return -1.
+- **Complexity:** Time: $O(N \times M)$, Space: $O(N \times M)$.
+
+**Code Implementation (BFS Approach):**
+
+```cpp
+int orangesRotting(vector<vector<int>>& grid) {
+    queue<pair<pair<int, int>, int>> q; // {{r, c}, t}
+    int vis[n][m];
+    for(int i=0; i<n; i++) {
+        for(int j=0; j<m; j++) {
+            if(grid[i][j] == 2) {
+                q.push({{i, j}, 0}); // Initial rotten oranges at t=0
+                vis[i][j] = 2;
+            } else vis[i][j] = 0;
+        }
+    }
+    int tm = 0;
+    int dRow[] = {-1, 0, 1, 0}, dCol[] = {0, 1, 0, -1}; // 4 directions
+    while(!q.empty()) {
+        int r = q.front().first.first, c = q.front().first.second, t = q.front().second;
+        tm = max(tm, t); q.pop(); //
+        for(int i=0; i<4; i++) {
+            int nr = r + dRow[i], nc = c + dCol[i];
+            if(nr >= 0 && nr < n && nc >= 0 && nc < m && grid[nr][nc] == 1 && vis[nr][nc] == 0) {
+                vis[nr][nc] = 2; // Mark as rotten
+                q.push({{nr, nc}, t + 1});
+            }
+        }
+    }
+    // Return time if no fresh oranges remain, else -1
+}
+```

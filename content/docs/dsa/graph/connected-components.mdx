@@ -1,0 +1,63 @@
+---
+title: Connected Components
+---
+
+### **Definition**
+
+- A graph does not necessarily have to be one single connected unit.
+- **Connected components** are the different "pieces" or portions that make up a single graph.
+- Even if several groups of nodes are not connected to each other, they can still be defined as parts of the **same single graph** based on the input and problem definition.
+- A single isolated node can also be considered a connected component.
+
+<div className="flex justify-center">
+
+<Mermaid chart={`
+graph TD
+    subgraph "Component 1"
+        A((1)) --- B((2))
+        B --- C((3))
+    end
+
+    subgraph "Component 2"
+        D((4)) --- E((5))
+    end
+
+    subgraph "Component 3"
+        F((6))
+    end
+
+    style Component1 fill:#e8f5e9,stroke:#2e7d32
+    style Component2 fill:#e3f2fd,stroke:#1976d2
+    style Component3 fill:#fff3e0,stroke:#f57c00
+
+`}
+/>
+
+</div>
+
+### **The Traversal Challenge**
+
+- The primary issue with multiple components is that a standard **traversal algorithm** (like BFS or DFS) starting from a single node will **only visit nodes within that specific component**.
+- If you start a journey at node 1, you will never be able to reach nodes located in a different, unconnected component.
+- Therefore, simply calling a traversal once from one node is insufficient to cover the entire graph if it has multiple components.
+
+### **The "Visited Array" Solution**
+
+To ensure every node in every component is visited, a specific logic must be followed:
+
+- **Visited Array:** Maintain an array (typically of size $N+1$) to keep track of which nodes have been processed. Initially, all values are set to `false` or "unvisited".
+- **The Loop Pattern:** Instead of calling the traversal once, you must **run a loop** through all nodes (e.g., from 1 to $N$).
+- **Conditional Execution:** Inside the loop, you check: **"If the node is not visited, then call the traversal algorithm for that node"**.
+- **Marking Nodes:** Once a traversal begins for an unvisited node, the algorithm is designed to traverse and mark **everyone in that specific connected portion** as visited.
+- **Skipping Visited Nodes:** As the loop continues, it will skip nodes that were already marked "visited" by a previous component's traversal, eventually finding the starting node of the next unvisited component.
+
+### **Summary of the Algorithmic Pattern**
+
+For any graph algorithm to be robust against multiple components, it should follow this structure:
+
+1.  Initialize a `visited` array to all zeros/false.
+2.  **For** `i = 1` to `N`:
+    - **If** `visited[i]` is `false`:
+      - Call `traversal(i)` (which marks all reachable nodes in that component as `true` in the `visited` array).
+
+This ensures that every "piece" of the graph is touched, regardless of how many disconnected components exist.
