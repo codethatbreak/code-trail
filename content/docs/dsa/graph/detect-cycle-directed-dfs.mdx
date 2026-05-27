@@ -1,0 +1,71 @@
+---
+title: Detect Cycle in Directed Graph Using DFS
+---
+
+### Concept and Intuition
+
+- **Definition of a Cycle:** In a directed graph, a cycle exists only if you can start at a node and follow the **directed edges** to eventually reach that same node again.
+- **The "Same Path" Rule:** Unlike undirected graphs, simply reaching an already visited node does not guarantee a cycle. A cycle is only confirmed if a node is visited again **on the same path** (within the current recursion stack).
+- **Why Undirected Logic Fails:** In undirected graphs, you use a "parent" pointer to avoid going back to the immediate previous node. In directed graphs, if you reach a visited node that was part of a _different_ completed path, it is not a cycle; it is just a different route to the same node.
+
+### Required Data Structures
+
+To track paths correctly, the algorithm uses two arrays:
+
+1.  **Visited Array:** Tracks if a node has been explored at any point during the entire traversal. This prevents redundant work.
+2.  **Path Visited Array:** Tracks if a node is currently in the **active recursion stack** (i.e., part of the current path being explored).
+
+### The DFS Algorithm Logic
+
+1.  **Initialization:** Mark the current node as **visited** and **path visited** (set both to 1).
+2.  **Neighbor Exploration:** For every adjacent neighbor of the current node:
+    - **If the neighbor is unvisited:** Recursively call the DFS. If that call returns `true`, a cycle was found—propagate `true` up the stack.
+    - **If the neighbor is already visited:** Check if it is also **path visited**. If it is, you have re-entered the same path, confirming a **cycle**. Return `true`.
+3.  **Backtracking:** After checking all neighbors of a node and before the function returns, **unmark the node from path visited** (set it back to 0). Keep it marked as **visited** so it isn't processed again by the outer loop.
+4.  **Handling Components:** Wrap the logic in a loop from 1 to $V$ to ensure every disconnected part of the graph is checked.
+
+---
+
+### Implementation Code
+
+#### C++
+
+```cpp
+bool dfsCheck(int node, vector<int> adj[], int vis[], int pathVis[]) {
+    vis[node] = 1;
+    pathVis[node] = 1; // Mark as part of current path
+
+    for(auto it : adj[node]) {
+        // When neighbor is not visited
+        if(!vis[it]) {
+            if(dfsCheck(it, adj, vis, pathVis) == true) return true;
+        }
+        // If neighbor is visited, check if it's on the same path
+        else if(pathVis[it]) {
+            return true;
+        }
+    }
+
+    pathVis[node] = 0; // Backtrack: remove from current path
+    return false;
+}
+
+bool isCyclic(int V, vector<int> adj[]) {
+    int vis[V] = {0};
+    int pathVis[V] = {0};
+
+    for(int i = 0; i < V; i++) {
+        if(!vis[i]) {
+            if(dfsCheck(i, adj, vis, pathVis) == true) return true;
+        }
+    }
+    return false;
+}
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** **$O(V + E)$**. Every node is visited once, and every directed edge is traversed once.
+- **Space Complexity:** **$O(2N)$** (or $O(N)$ simplified). This includes the two tracking arrays (`visited` and `path visited`) and the recursion stack space, which can be up to $N$ in the worst case.
+
+**Pro-tip:** As a homework exercise, the source suggests you can optimize this to use a **single visited array** by using different integer values (e.g., 1 for visited, 2 for path visited) to represent the states.

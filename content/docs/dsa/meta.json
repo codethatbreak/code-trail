@@ -1,5 +1,6 @@
 {
   "root": true,
   "title": "DSA",
-  "icon": "Code"
+  "icon": "Code",
+  "pages": ["graph"]
 }
