@@ -1,0 +1,84 @@
+---
+title: Bipartite Graph
+---
+
+A **bipartite graph** is a graph that can be colored using exactly **two colors** such that no two adjacent nodes share the same color. In simpler terms, if you pick any two colors (like yellow and green or 0 and 1), every node must be able to have a color different from all its immediate neighbors.
+
+### Key Properties and Observations
+
+- **Linear Graphs:** Any graph without cycles (linear) is **always bipartite** because you can simply alternate colors indefinitely.
+- **Cycles:**
+  - **Even Length Cycles:** Graphs containing only even-length cycles **can be bipartite**.
+  - **Odd Length Cycles:** Any graph that contains an **odd-length cycle** (e.g., a cycle of 3, 5, or 7 nodes) **can never be bipartite**.
+- **Complexity:** Both BFS and DFS approaches have a time complexity of **$O(V + 2E)$** and a space complexity of **$O(V)$** for the color array.
+
+---
+
+### Bipartite Check using BFS
+
+The BFS approach uses a **Queue** and a **Color Array** (initialized to -1 to represent "uncolored") to perform a level-wise "brute force" coloring.
+
+**The Logic:**
+
+1.  Assign an initial color (0) to the starting node and push it to the queue.
+2.  While the queue is not empty, pop a node and look at its neighbors.
+3.  **If a neighbor is uncolored:** Assign it the **opposite color** (if current is 0, neighbor gets 1) and push it to the queue.
+4.  **If a neighbor is already colored:** Check if it has the **same color** as the current node. If it does, the graph is **not bipartite**; return `false` immediately.
+
+**C++ BFS Implementation Snippet:**
+
+```cpp
+bool check(int start, int V, vector<int> adj[], int color[]) {
+    queue<int> q;
+    q.push(start);
+    color[start] = 0; // Start with color 0
+    while(!q.empty()) {
+        int node = q.front(); q.pop();
+        for(auto it : adj[node]) {
+            if(color[it] == -1) { // If not colored
+                color[it] = !color[node]; // Give opposite color
+                q.push(it);
+            } else if(color[it] == color[node]) { // If same color as neighbor
+                return false;
+            }
+        }
+    }
+    return true;
+}
+```
+
+---
+
+### Bipartite Check using DFS
+
+The DFS approach uses **recursion** to go as deep as possible, coloring nodes as it traverses.
+
+**The Logic:**
+
+1.  Color the current node with the assigned color.
+2.  For every neighbor:
+    - **If uncolored:** Call DFS recursively for that neighbor with the **opposite color**. If any recursive call returns `false`, propagate that `false` back up the stack.
+    - **If colored:** If the neighbor's color is the **same** as the current node's color, return `false`.
+3.  If all paths are explored without a color conflict, return `true`.
+
+**C++ DFS Implementation Snippet:**
+
+```cpp
+bool dfs(int node, int col, int color[], vector<vector<int>> adj) {
+    color[node] = col; // Color current node
+    for(int it : adj[node]) {
+        if(color[it] == -1) { // If neighbor not colored
+            if(dfs(it, 1 - col, color, adj) == false) return false;
+        } else if(color[it] == col) { // If neighbor has same color
+            return false;
+        }
+    }
+    return true;
+}
+```
+
+---
+
+### Handling Multiple Components
+
+For both BFS and DFS, you must wrap the logic in a **for-loop** (from 0 to $V-1$) to ensure all disconnected components of the graph are checked. If any single component is found to be non-bipartite, the entire graph is non-bipartite.

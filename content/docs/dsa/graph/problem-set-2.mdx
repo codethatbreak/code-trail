@@ -1,0 +1,161 @@
+---
+title: Problems Set 2
+---
+
+These notes for **Problem Set 2** cover advanced grid-based graph problems, focusing on multi-source Breadth-First Search (BFS), boundary-based traversals, and coordinate transformation for shape recognition.
+
+---
+
+### Distance of Nearest Cell Having 1 (0/1 Matrix)
+
+This problem asks for the distance of the nearest cell containing a '1' for every cell in an $N \times M$ grid.
+
+- **Core Concept:** The distance is calculated as the **Manhattan distance** (sum of absolute differences in row and column indices).
+- **The Intuition:** Since we need the _minimum_ distance, **BFS** is the ideal algorithm as it explores level-wise.
+- **Multi-Source BFS:** Instead of starting BFS from every '0' (which is inefficient), start a single BFS by pushing **all cells containing '1'** into the queue at $t=0$.
+- **Implementation:**
+  - Use a `visited` matrix to avoid redundant processing.
+  - Use a `distance` matrix where cells with '1' are initialised to 0.
+  - For every popped node, explore 4 directions. If a neighbor is unvisited, its distance is `current_distance + 1`.
+- **Complexity:** Time: $O(N \times M)$, Space: $O(N \times M)$.
+
+**Code (C++):**
+
+```cpp
+vector<vector<int>> nearest(vector<vector<int>> grid) {
+    int n = grid.size(), m = grid.size();
+    vector<vector<int>> vis(n, vector<int>(m, 0));
+    vector<vector<int>> dist(n, vector<int>(m, 0));
+    queue<pair<pair<int, int>, int>> q; // {{r, c}, distance}
+
+    for(int i=0; i<n; i++) {
+        for(int j=0; j<m; j++) {
+            if(grid[i][j] == 1) {
+                q.push({{i, j}, 0});
+                vis[i][j] = 1;
+            }
+        }
+    }
+    int dr[] = {-1, 0, 1, 0}, dc[] = {0, 1, 0, -1};
+    while(!q.empty()) {
+        int r = q.front().first.first, c = q.front().first.second, d = q.front().second;
+        q.pop();
+        dist[r][c] = d;
+        for(int i=0; i<4; i++) {
+            int nr = r + dr[i], nc = c + dc[i];
+            if(nr >= 0 && nr < n && nc >= 0 && nc < m && !vis[nr][nc]) {
+                vis[nr][nc] = 1;
+                q.push({{nr, nc}, d + 1});
+            }
+        }
+    }
+    return dist; //
+}
+```
+
+---
+
+### Surrounded Regions (Replace O's with X's)
+
+The goal is to replace 'O's with 'X's if the 'O' (or group of 'O's) is completely surrounded by 'X's.
+
+- **Key Observation:** Any 'O' on the **boundary** can never be fully surrounded. Furthermore, any 'O' connected to a boundary 'O' (even internally) is also protected and cannot be converted.
+- **Algorithm:**
+  1.  Traverse all **four boundaries**.
+  2.  If you find an 'O', trigger a **DFS/BFS** to mark all connected 'O's as "visited" (meaning they are safe).
+  3.  Finally, iterate the entire grid: if an 'O' is **unvisited**, convert it to 'X'.
+- **Complexity:** Time: $O(N \times M)$, Space: $O(N \times M)$.
+
+**Code (C++):**
+
+```cpp
+void dfs(int r, int c, vector<vector<int>>& vis, vector<vector<char>>& mat, int dr[], int dc[]) {
+    vis[r][c] = 1;
+    int n = mat.size(), m = mat.size();
+    for(int i=0; i<4; i++) {
+        int nr = r + dr[i], nc = c + dc[i];
+        if(nr >= 0 && nr < n && nc >= 0 && nc < m && !vis[nr][nc] && mat[nr][nc] == 'O') {
+            dfs(nr, nc, vis, mat, dr, dc);
+        }
+    }
+}
+
+void fill(vector<vector<char>>& mat) {
+    int n = mat.size(), m = mat.size();
+    vector<vector<int>> vis(n, vector<int>(m, 0));
+    int dr[] = {-1, 0, 1, 0}, dc[] = {0, 1, 0, -1};
+    // Boundary traversals for first/last row and column
+    for(int j=0; j<m; j++) {
+        if(!vis[j] && mat[j] == 'O') dfs(0, j, vis, mat, dr, dc);
+        if(!vis[n-1][j] && mat[n-1][j] == 'O') dfs(n-1, j, vis, mat, dr, dc);
+    }
+    for(int i=0; i<n; i++) {
+        if(!vis[i] && mat[i] == 'O') dfs(i, 0, vis, mat, dr, dc);
+        if(!vis[i][m-1] && mat[i][m-1] == 'O') dfs(i, m-1, vis, mat, dr, dc);
+    }
+    // Convert remaining 'O's to 'X'
+    for(int i=0; i<n; i++) {
+        for(int j=0; j<m; j++) {
+            if(!vis[i][j] && mat[i][j] == 'O') mat[i][j] = 'X';
+        }
+    } //
+}
+```
+
+---
+
+### Number of Enclaves
+
+Find the number of land cells ('1') from which you **cannot** walk off the boundary.
+
+- **Logic:** This is practically identical to "Surrounded Regions." Any land cell connected to the boundary allows an exit.
+- **Process:**
+  1.  Find all land cells on the **boundary** and push them into a **BFS queue**.
+  2.  Perform a BFS to mark all reachable land cells as visited.
+  3.  Count the remaining '1's that are **unvisited**.
+- **Complexity:** Time: $O(N \times M)$, Space: $O(N \times M)$.
+
+---
+
+### Number of Distinct Islands
+
+Count the number of unique island shapes in a grid.
+
+- **The Problem:** Standard counting counts every separate island, but here, two islands are the same if they have the **identical shape** (not rotated or reflected).
+- **Constructive Thinking:** To represent a shape, store the **relative coordinates** of its cells.
+  - During a DFS, when you visit a cell $(r, c)$, subtract the **base coordinate** (the cell where the DFS started, $r_0, c_0$).
+  - Store these transformed pairs $(r - r_0, c - c_0)$ in a list.
+- **Ensuring Uniqueness:** Use a **Set** to store these lists. Since a Set only stores unique elements, its size at the end will be the number of distinct islands.
+- **Complexity:** Time: $O(N \times M \times \log(\text{set size}))$, Space: $O(N \times M)$.
+
+**Code (C++):**
+
+```cpp
+void dfs(int r, int c, vector<vector<int>>& vis, vector<vector<int>>& grid, vector<pair<int, int>>& res, int r0, int c0) {
+    vis[r][c] = 1;
+    res.push_back({r - r0, c - c0}); // Store relative coordinate
+    int dr[] = {-1, 0, 1, 0}, dc[] = {0, 1, 0, -1};
+    for(int i=0; i<4; i++) {
+        int nr = r + dr[i], nc = c + dc[i];
+        if(nr >= 0 && nr < grid.size() && nc >= 0 && nc < grid.size() && !vis[nr][nc] && grid[nr][nc] == 1) {
+            dfs(nr, nc, vis, grid, res, r0, c0);
+        }
+    }
+}
+
+int countDistinctIslands(vector<vector<int>>& grid) {
+    int n = grid.size(), m = grid.size();
+    vector<vector<int>> vis(n, vector<int>(m, 0));
+    set<vector<pair<int, int>>> st;
+    for(int i=0; i<n; i++) {
+        for(int j=0; j<m; j++) {
+            if(!vis[i][j] && grid[i][j] == 1) {
+                vector<pair<int, int>> res;
+                dfs(i, j, vis, grid, res, i, j); // (i, j) is the base
+                st.insert(res);
+            }
+        }
+    }
+    return st.size(); //
+}
+```

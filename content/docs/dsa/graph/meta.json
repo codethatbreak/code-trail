@@ -4,6 +4,11 @@
     "breadth-first-search",
     "depth-first-search",
     "problem-set-1",
-    "detect-cycle-undirected-bfs.mdx"
+    "detect-cycle-undirected-bfs",
+    "detect-cycle-undirected-dfs",
+    "problem-set-2",
+    "bipartite-graph",
+    "detect-cycle-directed-dfs",
+    "safe-states"
   ]
 }
