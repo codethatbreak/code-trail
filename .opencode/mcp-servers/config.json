@@ -1,6 +1,0 @@
-{
-  "youtube-transcript": {
-    "command": "node",
-    "args": ["/home/aakash/code-trail/.opencode/node_modules/@emit-ia/youtube-transcript-mcp/build/index.js"]
-  }
-}

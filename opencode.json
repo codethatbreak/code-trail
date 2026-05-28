@@ -1,0 +1,22 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "youtube-playlist": {
+      "type": "local",
+      "command": [
+        "npx",
+        "@emit-ia/youtube-transcript-mcp"
+      ],
+      "enabled": true
+    },
+    "youtube-transcript": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "--from",
+        "git+https://github.com/jkawamoto/mcp-youtube-transcript",
+        "mcp-youtube-transcript"
+      ]
+    }
+  }
+}

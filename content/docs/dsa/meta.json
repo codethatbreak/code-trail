@@ -2,5 +2,5 @@
   "root": true,
   "title": "DSA",
   "icon": "Code",
-  "pages": ["graph"]
+  "pages": ["graph", "bit-manipulation"]
 }
