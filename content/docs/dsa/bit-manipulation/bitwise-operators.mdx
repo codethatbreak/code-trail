@@ -1,0 +1,292 @@
+---
+title: "Bitwise Operators — AND, OR, XOR, NOT, Shifts"
+---
+
+## Definition and Concept
+
+**Bitwise operators** perform operations on individual bits of integer values. Instead of treating numbers as whole entities, these operators look at each bit position independently and apply logical operations.
+
+### The Five Core Bitwise Operators
+
+| Operator | Name | Symbol | Description |
+|----------|------|--------|-------------|
+| `&` | AND | Ampersand | Returns 1 only if **both** bits are 1 |
+| `\|` | OR | Pipe | Returns 1 if **at least one** bit is 1 |
+| `^` | XOR | Caret | Returns 1 if **exactly one** of the two bits is 1 (odd number of 1s) |
+| `~` | NOT | Tilde | Flips all bits (0→1, 1→0) |
+| `<<`, `>>` | Left/Right Shift | Arrows | Moves bits left or right by k positions |
+
+### Visual Representation — Truth Tables
+
+#### AND (`&`) — All True Means True
+
+```
+Bit A | Bit B | A & B
+------+-------+------
+  0   |   0   |  0
+  0   |   1   |  0
+  1   |   0   |  0
+  1   |   1   |  1
+```
+
+**Rule**: `1 & 1 = 1`, everything else is `0`
+
+#### OR (`|`) — One True Means True
+
+```
+Bit A | Bit B | A | B
+------+-------+------
+  0   |   0   |  0
+  0   |   1   |  1
+  1   |   0   |  1
+  1   |   1   |  1
+```
+
+**Rule**: `0 | 0 = 0`, everything else is `1`
+
+#### XOR (`^`) — Odd Number of Ones Means One
+
+```
+Bit A | Bit B | A ^ B
+------+-------+------
+  0   |   0   |  0
+  0   |   1   |  1
+  1   |   0   |  1
+  1   |   1   |  0
+```
+
+**Rule**: Same bits → `0`, different bits → `1`
+
+### Visual Representation — Bit-Level Example
+
+Let's see how `13 & 7` works at the bit level:
+
+```
+Number 13 in binary (8-bit for clarity):    0000 1101
+Number  7 in binary (8-bit for clarity):    0000 0111
+                                            ---------- AND (&)
+Result:                                      0000 0101 = 5
+
+Position:   7654 3210
+            ──────────
+            0000 1101    (13)
+            0000 0111    (7)
+            ──────────
+            0000 0101    (5)
+```
+
+Each column is processed independently:
+- Position 0: `1 & 1 = 1` ✓
+- Position 1: `0 & 1 = 0` ✗
+- Position 2: `1 & 1 = 1` ✓
+- Position 3: `1 & 0 = 0` ✗
+- Positions 4–7: `0 & 0 = 0` (all zeros)
+
+### Intuition — How to Think About This
+
+**Why do bitwise operators matter?**
+
+Think of each bit position as an independent light switch. Bitwise operations let you control all switches simultaneously in a single CPU instruction. This parallelism is what makes them so powerful:
+
+- **AND (`&`)** acts like a **mask** — it "selects" only the bits where the mask has 1s
+- **OR (`|`)** acts like an **injector** — it "forces on" bits where the operand has 1s
+- **XOR (`^`)** acts like a **toggle detector** — it highlights differences between two numbers
+- **NOT (`~`)** is a **complete flipper** — every bit gets inverted
+- **Shifts (`<<`, `>>`)** are **multipliers/dividers by powers of 2**
+
+### Step-by-Step Thinking Process
+
+When you encounter a problem involving bitwise operators, ask yourself:
+
+1. **What am I trying to isolate or extract?** → Use AND with a mask
+2. **What do I want to force on?** → Use OR
+3. **Am I looking for differences between two values?** → Use XOR
+4. **Do I need to flip bits?** → Use NOT (careful with negative numbers!)
+5. **Am I multiplying or dividing by powers of 2?** → Use shifts
+
+### The Algorithm — Understanding Each Operator
+
+#### 1. AND (`&`)
+
+```
+Step 1: Convert both numbers to binary (32-bit for int)
+Step 2: Align bits at each position
+Step 3: For each position, result is 1 only if BOTH bits are 1
+Step 4: Convert back to decimal
+```
+
+**Key property**: `x & x = x` and `x & 0 = 0`
+
+#### 2. OR (`|`)
+
+```
+Step 1: Convert both numbers to binary (32-bit for int)
+Step 2: Align bits at each position
+Step 3: For each position, result is 1 if AT LEAST ONE bit is 1
+Step 4: Convert back to decimal
+```
+
+**Key property**: `x | x = x` and `x | 0 = x`
+
+#### 3. XOR (`^`) — The Most Important Bitwise Operator
+
+```
+Step 1: Convert both numbers to binary (32-bit for int)
+Step 2: Align bits at each position
+Step 3: For each position, result is 1 if EXACTLY ONE bit is 1
+Step 4: Convert back to decimal
+```
+
+**Key properties**:
+- `x ^ x = 0` (same numbers cancel out!)
+- `x ^ 0 = x` (XOR with zero gives the number itself)
+- **Commutative**: `a ^ b = b ^ a`
+- **Associative**: `(a ^ b) ^ c = a ^ (b ^ c)`
+
+These properties make XOR incredibly powerful for problems involving duplicates.
+
+#### 4. NOT (`~`)
+
+```
+Step 1: Convert number to binary (32-bit for int)
+Step 2: Flip every bit (0→1, 1→0)
+Step 3: If result is negative, it's stored in two's complement form
+```
+
+**Key property**: `~x = -(x + 1)` — this is a useful identity to remember!
+
+#### 5. Left Shift (`<<`) and Right Shift (`>>`)
+
+**Left Shift (`a << k`)**:
+```
+Step 1: Write number in binary
+Step 2: Move all bits left by k positions
+Step 3: Fill empty rightmost positions with zeros
+Step 4: Discard bits that shift off the left edge (overflow!)
+```
+
+**Formula**: `a << k = a × 2^k`
+
+**Right Shift (`a >> k`)**:
+```
+Step 1: Write number in binary
+Step 2: Move all bits right by k positions
+Step 3: Fill empty leftmost positions with zeros (for positive numbers)
+Step 4: Discard bits that shift off the right edge
+```
+
+**Formula**: `a >> k = floor(a / 2^k)` for non-negative a
+
+### Worked Example — Step by Step
+
+#### Example 1: Computing `13 & 7`
+
+```
+Input: a = 13, b = 7
+
+Step 1: Convert to binary (showing last 4 bits)
+  13 → 1101
+   7 → 0111
+
+Step 2: Apply AND bit by bit
+  Position 0: 1 & 1 = 1
+  Position 1: 0 & 1 = 0
+  Position 2: 1 & 1 = 1
+  Position 3: 1 & 0 = 0
+
+Step 3: Result in binary: 0101 = 5
+
+Output: 5 ✓
+```
+
+#### Example 2: Computing `13 ^ 7`
+
+```
+Input: a = 13, b = 7
+
+Step 1: Convert to binary (showing last 4 bits)
+  13 → 1101
+   7 → 0111
+
+Step 2: Apply XOR bit by bit
+  Position 0: 1 ^ 1 = 0  (same → 0)
+  Position 1: 0 ^ 1 = 1  (different → 1)
+  Position 2: 1 ^ 1 = 0  (same → 0)
+  Position 3: 1 ^ 0 = 1  (different → 1)
+
+Step 3: Result in binary: 1010 = 8 + 2 = 10
+
+Output: 10 ✓
+```
+
+#### Example 3: Shift Operations with `13`
+
+```
+Input: n = 13 (binary: 1101)
+
+Left shift by 1: 13 << 1
+  1101 → 11010 = 26
+  Formula check: 13 × 2^1 = 13 × 2 = 26 ✓
+
+Right shift by 1: 13 >> 1
+  1101 → 0110 = 6
+  Formula check: floor(13 / 2^1) = floor(6.5) = 6 ✓
+
+Right shift by 2: 13 >> 2
+  1101 → 0011 = 3
+  Formula check: floor(13 / 4) = 3 ✓
+```
+
+### Complexity Analysis
+
+- **Time Complexity**: $O(1)$ — bitwise operations are single CPU instructions
+- **Space Complexity**: $O(1)$ — no extra space needed
+
+### Implementation Code — C++
+
+```cpp
+#include <iostream>
+using namespace std;
+
+int main() {
+    int a = 13, b = 7;
+
+    // AND: keeps only bits that are set in BOTH numbers
+    cout << "a & b = " << (a & b) << endl;   // Output: 5
+
+    // OR: sets bits that are set in EITHER number
+    cout << "a | b = " << (a | b) << endl;   // Output: 15
+
+    // XOR: sets bits that differ between the two numbers
+    cout << "a ^ b = " << (a ^ b) << endl;   // Output: 10
+
+    // NOT: flips all bits (~x = -(x+1))
+    cout << "~a = " << (~a) << endl;         // Output: -14
+
+    // Left shift: multiplies by 2^k
+    cout << "a << 1 = " << (a << 1) << endl; // Output: 26 (= 13 * 2)
+    cout << "a << 2 = " << (a << 2) << endl; // Output: 52 (= 13 * 4)
+
+    // Right shift: divides by 2^k (floor for positive numbers)
+    cout << "a >> 1 = " << (a >> 1) << endl; // Output: 6 (= floor(13/2))
+    cout << "a >> 2 = " << (a >> 2) << endl; // Output: 3 (= floor(13/4))
+
+    return 0;
+}
+```
+
+### Key Logic Summary / Important Points
+
+- **XOR is the most important operator** in bit manipulation — remember `x ^ x = 0` and `x ^ 0 = x`
+- **AND with a mask** extracts specific bits: `x & ((1 << k) - 1)` gets the last k bits
+- **Left shift by k** is equivalent to multiplying by $2^k$ — use it for fast multiplication
+- **Right shift by k** is equivalent to dividing by $2^k$ (floor division) — use it for fast division
+- **NOT of a positive number** always gives a negative result in two's complement: `~x = -(x + 1)`
+- **Overflow warning**: Left shifting can overflow. Shifting by ≥ 32 bits on a 32-bit int is undefined behavior
+- **In competitive programming**, prefer `n & 1` over `n % 2` to check odd/even, and `(low + high) >> 1` over `(low + high) / 2` for mid calculation in binary search
+
+### See Also
+
+- [Complement Representation](./complement-representation) — How negative numbers are stored
+- [Bit Manipulation Tricks](./bit-manipulation-tricks) — Practical applications of these operators
+- [Counting Set Bits](./count-set-bits) — Using AND and shifts to count 1s efficiently

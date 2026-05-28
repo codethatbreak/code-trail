@@ -1,0 +1,225 @@
+---
+title: "Divide Two Integers — Without Using *, / or %"
+---
+
+## Definition and Concept
+
+Given two **32-bit signed integers** `dividend` and `divisor`, divide them **without using multiplication (`*`), division (`/`), or modulo (`%`) operators**. The result should be truncated toward zero (i.e., the integer part of the quotient).
+
+The result must fit within a 32-bit signed integer range: $[-2^{31}, 2^{31} - 1]$. If it overflows, return $2^{31} - 1$ (INT_MAX).
+
+### Intuition — How to Think About This
+
+**Naive approach**: Repeatedly subtract the divisor from the dividend. But this is too slow for large dividends (e.g., dividing INT_MAX by 1 would take 2 billion subtractions!).
+
+**Key insight**: Instead of subtracting one copy at a time, we can **subtract multiples of the divisor using bit shifts**. This is essentially how long division works in binary!
+
+```
+To divide 43 by 5:
+  43 - 5 = 38 (quotient += 1)
+  38 - 5 = 33 (quotient += 1)
+  ...too slow!
+
+Better approach using doubling:
+  43 - 5 = 38, quotient = 1
+  43 - 10 = 33, quotient = 2    (5 << 1 = 10)
+  43 - 20 = 23, quotient = 4    (5 << 2 = 20)
+  43 - 40 = 3, quotient = 8     (5 << 3 = 40) ← can't go further!
+  
+  Now work with remainder 3:
+  3 < 5, so we stop.
+
+Answer: 8... but wait, let me redo this properly.
+```
+
+### Visual Representation — Binary Long Division
+
+```
+Dividing 43 by 5 (binary):
+
+  dividend = 43 = 101011
+  divisor  =  5 = 000101
+
+Step 1: Find largest k such that (divisor << k) <= dividend
+  5 << 0 = 5    ≤ 43 ✓ → quotient += 2^0 = 1, remainder = 43 - 5 = 38
+  5 << 1 = 10   ≤ 38 ✓ → quotient += 2^1 = 2, remainder = 38 - 10 = 28
+  5 << 2 = 20   ≤ 28 ✓ → quotient += 2^2 = 4, remainder = 28 - 20 = 8
+  5 << 3 = 40   > 8 ✗ → stop doubling
+
+Step 2: Continue with remainder 8:
+  5 << 0 = 5    ≤ 8 ✓ → quotient += 1, remainder = 8 - 5 = 3
+  5 << 1 = 10   > 3 ✗ → stop
+
+Step 3: Remainder 3 < divisor 5, so we're done.
+
+Total quotient = 1 + 2 + 4 + 1 = 8 ✓ (43 / 5 = 8 remainder 3)
+```
+
+### Step-by-Step Thinking Process
+
+1. **Handle signs**: Determine if the result should be positive or negative
+2. **Work with absolute values** to simplify the division logic
+3. **Find the largest power of 2** such that `divisor * 2^k <= current dividend` using left shifts
+4. **Subtract and accumulate** the quotient bit by bit (like binary long division)
+5. **Handle overflow**: The only case is `-2147483648 / -1 = 2147483648`, which exceeds INT_MAX
+
+### The Algorithm / Step-by-Step Logic
+
+```
+Given dividend and divisor:
+
+Step 1: Handle special cases
+        a. If divisor == 0 → undefined (throw error or return 0)
+        b. If dividend == INT_MIN and divisor == -1 → overflow, return INT_MAX
+
+Step 2: Determine sign of result
+        a. result is negative if exactly one of dividend/divisor is negative
+
+Step 3: Work with absolute values (use long to avoid overflow for INT_MIN)
+        a. Convert both to positive using abs() or manual negation
+
+Step 4: Binary long division
+        a. While dividend >= divisor:
+           i. Find largest k such that (divisor << k) <= dividend
+              → Start with k = 0, keep doubling until it exceeds
+           ii. Subtract (divisor << k) from dividend
+           iii. Add 2^k to quotient
+
+Step 5: Apply sign and return result ✓
+```
+
+### Worked Example — Step by Step
+
+#### Example 1: dividend = 43, divisor = 5
+
+```
+Step 1: No special cases (divisor ≠ 0, not INT_MIN/-1 case)
+
+Step 2: Both positive → result is positive
+
+Step 3: abs(43) = 43, abs(5) = 5
+
+Step 4: Binary long division:
+
+Iteration 1: dividend = 43, divisor = 5
+  Find largest k where (5 << k) <= 43:
+    k=0: 5 << 0 = 5 ≤ 43 ✓
+    k=1: 5 << 1 = 10 ≤ 43 ✓
+    k=2: 5 << 2 = 20 ≤ 43 ✓
+    k=3: 5 << 3 = 40 ≤ 43 ✓
+    k=4: 5 << 4 = 80 > 43 ✗ → stop! Largest valid k = 3
+  
+  Subtract: dividend = 43 - 40 = 3
+  Add to quotient: quotient += 2^3 = 8
+
+Iteration 2: dividend = 3, divisor = 5
+  3 < 5 → loop ends (can't subtract anymore)
+
+Step 5: Result = +8 ✓ (43 / 5 = 8.6, truncated to 8)
+```
+
+#### Example 2: dividend = -7, divisor = 3
+
+```
+Step 1: No special cases
+
+Step 2: One negative → result is negative
+
+Step 3: abs(-7) = 7, abs(3) = 3
+
+Step 4: Binary long division:
+
+Iteration 1: dividend = 7, divisor = 3
+  Find largest k where (3 << k) <= 7:
+    k=0: 3 << 0 = 3 ≤ 7 ✓
+    k=1: 3 << 1 = 6 ≤ 7 ✓
+    k=2: 3 << 2 = 12 > 7 ✗ → stop! Largest valid k = 1
+  
+  Subtract: dividend = 7 - 6 = 1
+  Add to quotient: quotient += 2^1 = 2
+
+Iteration 2: dividend = 1, divisor = 3
+  1 < 3 → loop ends
+
+Step 5: Result = -2 ✓ (-7 / 3 = -2.33..., truncated toward zero = -2)
+```
+
+#### Example 3: dividend = INT_MIN (-2^31), divisor = -1 (overflow case)
+
+```
+Step 1: Special case!
+  dividend == INT_MIN and divisor == -1 → overflow!
+  
+  abs(INT_MIN) would be 2^31, which exceeds INT_MAX (2^31 - 1)
+  
+  Return INT_MAX = 2147483647 ✓
+```
+
+### Complexity Analysis
+
+- **Time Complexity**: $O(\log n)$ where n is the quotient. Each iteration at least halves the remaining dividend, so there are at most $O(32)$ iterations (for 32-bit integers)
+- **Space Complexity**: $O(1)$ — only a few integer variables used
+
+### Implementation Code — C++
+
+```cpp
+#include <iostream>
+#include <climits>
+using namespace std;
+
+int divide(int dividend, int divisor) {
+    // Handle overflow case: INT_MIN / -1 = 2^31 which overflows
+    if (dividend == INT_MIN && divisor == -1) {
+        return INT_MAX;
+    }
+    
+    // Determine sign of result
+    bool negative = (dividend < 0) ^ (divisor < 0);
+    
+    // Work with absolute values using long to avoid overflow for INT_MIN
+    long a = abs((long)dividend);
+    long b = abs((long)divisor);
+    
+    int quotient = 0;
+    
+    // Binary long division
+    while (a >= b) {
+        int k = 0;
+        
+        // Find largest k such that (b << k) <= a
+        // Keep doubling until it would exceed a
+        while ((b << (k + 1)) <= a) {
+            k++;
+        }
+        
+        // Subtract the largest multiple and add to quotient
+        a -= (b << k);
+        quotient += (1 << k);
+    }
+    
+    return negative ? -quotient : quotient;
+}
+
+int main() {
+    cout << "43 / 5 = " << divide(43, 5) << endl;       // Output: 8
+    cout << "-7 / 3 = " << divide(-7, 3) << endl;        // Output: -2
+    cout << "100 / 10 = " << divide(100, 10) << endl;    // Output: 10
+    cout << "INT_MIN / -1 = " << divide(INT_MIN, -1) << endl; // Output: INT_MAX
+    
+    return 0;
+}
+```
+
+### Key Logic Summary / Important Points
+
+- **Binary long division**: Instead of subtracting one divisor at a time, find the largest power-of-two multiple and subtract that — this gives $O(\log n)$ instead of $O(n)$
+- **Left shift for doubling**: `divisor << k` computes `divisor × 2^k` efficiently
+- **Overflow handling**: The only overflow case is `INT_MIN / -1 = 2^31`, which exceeds INT_MAX. Always check this first!
+- **Use long (64-bit)** to store absolute values of INT_MIN, since `abs(INT_MIN)` overflows a 32-bit int
+- **Truncation toward zero**: C++ integer division truncates toward zero by default (e.g., `-7 / 3 = -2`, not `-3`)
+- **This is essentially how CPUs implement division** at the hardware level — binary long division!
+
+### See Also
+
+- [Bitwise Operators](./bitwise-operators) — Left shift for doubling, used throughout this algorithm
+- [Complement Representation](./complement-representation) — Understanding INT_MIN and overflow in two's complement

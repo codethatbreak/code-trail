@@ -1,0 +1,475 @@
+---
+title: "Problem Set — Bit Manipulation"
+---
+
+## Overview of Problems
+
+This problem set covers essential bit manipulation problems, organized by difficulty. Each problem reinforces concepts from the previous notes in this topic family.
+
+### See Also
+
+- [Bitwise Operators](./bitwise-operators) — Foundation for all bitwise operations
+- [Counting Set Bits](./count-set-bits) — Brian Kernighan's Algorithm
+- [Single Number I/II/III](./single-number-i), [./single-number-ii], [./single-number-iii] — XOR tricks
+- [Power Set using Bit Manipulation](./power-set-bit-manipulation) — Binary enumeration of subsets
+
+---
+
+## Easy Problems
+
+### Problem 1: Counting Bits (LeetCode 338)
+
+**Problem**: Given an integer `n`, return an array where each element at index `i` is the number of set bits in `i`.
+
+**Input**: `n = 5`
+**Output**: `[0, 1, 1, 2, 1, 2]`
+
+**Hint**: Use Brian Kernighan's Algorithm or dynamic programming with bit manipulation.
+
+```cpp
+vector<int> countBits(int n) {
+    vector<int> result(n + 1, 0);
+    
+    for (int i = 1; i <= n; i++) {
+        // Method: use the trick from [Counting Set Bits](./count-set-bits)
+        result[i] = result[i & (i - 1)] + 1;
+        // i & (i-1) removes rightmost set bit, so it has one fewer bit than i
+    }
+    
+    return result;
+}
+
+// Alternative: using __builtin_popcount
+vector<int> countBitsBuiltIn(int n) {
+    vector<int> result(n + 1);
+    for (int i = 0; i <= n; i++) {
+        result[i] = __builtin_popcount(i);
+    }
+    return result;
+}
+```
+
+**Complexity**: $O(n)$ time, $O(1)$ extra space (excluding output)
+
+---
+
+### Problem 2: Number of 1 Bits (LeetCode 191)
+
+**Problem**: Write a function that counts the number of set bits in an unsigned integer.
+
+**Input**: `n = 00000000000000000000000000001011`
+**Output**: `3`
+
+**Hint**: Use Brian Kernighan's Algorithm from [Counting Set Bits](./count-set-bits).
+
+```cpp
+int hammingWeight(uint32_t n) {
+    int count = 0;
+    while (n > 0) {
+        n &= (n - 1);  // Remove rightmost set bit
+        count++;
+    }
+    return count;
+}
+```
+
+**Complexity**: $O(k)$ time where k = number of set bits, $O(1)$ space
+
+---
+
+### Problem 3: Power of Two (LeetCode 231)
+
+**Problem**: Check if a given integer is a power of two.
+
+**Input**: `n = 16`
+**Output**: `true`
+
+**Hint**: A power of two has exactly one bit set. Use the trick from [Bit Manipulation Tricks](./bit-manipulation-tricks).
+
+```cpp
+bool isPowerOfTwo(int n) {
+    return n > 0 && (n & (n - 1)) == 0;
+}
+```
+
+**Complexity**: $O(1)$ time, $O(1)$ space
+
+---
+
+### Problem 4: Single Number I (LeetCode 136)
+
+**Problem**: Every element appears twice except one. Find the unique element.
+
+**Input**: `[4, 1, 2, 1, 2]`
+**Output**: `4`
+
+**Hint**: Use XOR cancellation from [Single Number I](./single-number-i).
+
+```cpp
+int singleNumber(vector<int>& nums) {
+    int result = 0;
+    for (int num : nums) {
+        result ^= num;
+    }
+    return result;
+}
+```
+
+**Complexity**: $O(n)$ time, $O(1)$ space
+
+---
+
+### Problem 5: Reverse Bits (LeetCode 190)
+
+**Problem**: Reverse the bits of a given 32-bit unsigned integer.
+
+**Input**: `n = 43261596` (binary: `00000010100101000001111010011100`)
+**Output**: `964176192` (binary: `00111001011110000010100101000000`)
+
+**Hint**: Extract each bit from the right and build the reversed number.
+
+```cpp
+uint32_t reverseBits(uint32_t n) {
+    uint32_t result = 0;
+    
+    for (int i = 0; i < 32; i++) {
+        // Shift result left to make room for new bit
+        result <<= 1;
+        
+        // Extract the rightmost bit of n and add it to result
+        result |= (n & 1);
+        
+        // Remove the processed bit from n
+        n >>= 1;
+    }
+    
+    return result;
+}
+```
+
+**Complexity**: $O(32) = O(1)$ time, $O(1)$ space
+
+---
+
+### Problem 6: Minimum Bit Flips (LeetCode 2220)
+
+**Problem**: Find minimum bit flips to convert `start` to `goal`.
+
+**Input**: `start = 10, goal = 7`
+**Output**: `3`
+
+**Hint**: XOR the two numbers and count set bits from [Minimum Bit Flips](./minimum-bit-flips).
+
+```cpp
+int minBitFlips(int start, int goal) {
+    return __builtin_popcount(start ^ goal);
+}
+```
+
+**Complexity**: $O(1)$ time, $O(1)$ space
+
+---
+
+## Medium Problems
+
+### Problem 7: Single Number II (LeetCode 137)
+
+**Problem**: Every element appears three times except one. Find the unique element.
+
+**Input**: `[2, 2, 3, 2]`
+**Output**: `3`
+
+**Hint**: Count bits at each position from [Single Number II](./single-number-ii).
+
+```cpp
+int singleNumber(vector<int>& nums) {
+    int result = 0;
+    
+    for (int i = 0; i < 32; i++) {
+        int count = 0;
+        
+        // Count how many numbers have the i-th bit set
+        for (int num : nums) {
+            if ((num >> i) & 1) {
+                count++;
+            }
+        }
+        
+        // If count % 3 == 1, the unique number has this bit set
+        if (count % 3 == 1) {
+            result |= (1 << i);
+        }
+    }
+    
+    return result;
+}
+```
+
+**Complexity**: $O(32n) = O(n)$ time, $O(1)$ space
+
+---
+
+### Problem 8: Single Number III (LeetCode 260)
+
+**Problem**: Exactly two elements appear once, all others twice. Find both unique elements.
+
+**Input**: `[1, 2, 1, 3, 2, 5]`
+**Output**: `[3, 5]` (order doesn't matter)
+
+**Hint**: Use XOR to find a differing bit from [Single Number III](./single-number-iii).
+
+```cpp
+vector<int> singleNumber(vector<int>& nums) {
+    // Step 1: XOR all → gives a ^ b
+    int xorAll = 0;
+    for (int num : nums) {
+        xorAll ^= num;
+    }
+    
+    // Step 2: Find rightmost set bit
+    int diff = xorAll & (-xorAll);
+    
+    // Step 3: Partition and XOR each group
+    int x = 0, y = 0;
+    for (int num : nums) {
+        if ((num & diff) == 0) {
+            x ^= num;
+        } else {
+            y ^= num;
+        }
+    }
+    
+    return {x, y};
+}
+```
+
+**Complexity**: $O(n)$ time, $O(1)$ space
+
+---
+
+### Problem 9: Subsets (LeetCode 78) — Power Set
+
+**Problem**: Return all possible subsets of an array.
+
+**Input**: `[1, 2, 3]`
+**Output**: `[[], [1], [2], [2,1], [3], [3,1], [3,2], [3,2,1]]`
+
+**Hint**: Use bit manipulation from [Power Set using Bit Manipulation](./power-set-bit-manipulation).
+
+```cpp
+vector<vector<int>> subsets(vector<int>& nums) {
+    int n = nums.size();
+    int totalSubsets = 1 << n;  // 2^n
+    vector<vector<int>> result;
+    
+    for (int num = 0; num < totalSubsets; num++) {
+        vector<int> subset;
+        
+        for (int j = 0; j < n; j++) {
+            if ((num >> j) & 1) {
+                subset.push_back(nums[j]);
+            }
+        }
+        
+        result.push_back(subset);
+    }
+    
+    return result;
+}
+```
+
+**Complexity**: $O(n \times 2^n)$ time, $O(n \times 2^n)$ space for output
+
+---
+
+### Problem 10: Divide Two Integers (LeetCode 29)
+
+**Problem**: Divide two integers without using `*`, `/`, or `%`.
+
+**Input**: `dividend = 10, divisor = 3`
+**Output**: `3`
+
+**Hint**: Use binary long division with bit shifts from [Divide Two Integers](./divide-two-integers).
+
+```cpp
+int divide(int dividend, int divisor) {
+    if (dividend == INT_MIN && divisor == -1) return INT_MAX;
+    
+    bool negative = (dividend < 0) ^ (divisor < 0);
+    long a = abs((long)dividend);
+    long b = abs((long)divisor);
+    
+    int quotient = 0;
+    
+    while (a >= b) {
+        int k = 0;
+        while ((b << (k + 1)) <= a) {
+            k++;
+        }
+        a -= (b << k);
+        quotient += (1 << k);
+    }
+    
+    return negative ? -quotient : quotient;
+}
+```
+
+**Complexity**: $O(\log n)$ time, $O(1)$ space
+
+---
+
+### Problem 11: XOR of Numbers in a Range (LeetCode 421) — Related
+
+**Problem**: Compute XOR from `left` to `right`.
+
+**Input**: `m = 5, n = 8`
+**Output**: `11` (because 5 ^ 6 ^ 7 ^ 8 = 11)
+
+**Hint**: Use the pattern from [XOR Range](./xor-range).
+
+```cpp
+int computeXor(int n) {
+    int remainder = n % 4;
+    if (remainder == 0) return n;
+    if (remainder == 1) return 1;
+    if (remainder == 2) return n + 1;
+    return 0;
+}
+
+int xorOperation(int left, int right) {
+    return computeXor(right) ^ computeXor(left - 1);
+}
+```
+
+**Complexity**: $O(1)$ time, $O(1)$ space
+
+---
+
+## Hard Problems
+
+### Problem 12: Maximum XOR of Two Numbers in an Array (LeetCode 421)
+
+**Problem**: Find the maximum XOR value between any two numbers in the array.
+
+**Input**: `[3, 10, 5, 25, 2, 8]`
+**Output**: `28` (because 5 ^ 25 = 28)
+
+**Hint**: Use a Trie (prefix tree) to greedily find the maximum XOR for each number. This is an advanced bit manipulation problem that goes beyond basic tricks.
+
+```cpp
+// Trie node structure
+struct TrieNode {
+    TrieNode* children[2] = {nullptr, nullptr};
+};
+
+class Solution {
+public:
+    int findMaximumXOR(vector<int>& nums) {
+        TrieNode* root = new TrieNode();
+        
+        // Insert all numbers into the trie (31 bits each)
+        for (int num : nums) {
+            TrieNode* node = root;
+            for (int i = 30; i >= 0; i--) {
+                int bit = (num >> i) & 1;
+                if (!node->children[bit]) {
+                    node->children[bit] = new TrieNode();
+                }
+                node = node->children[bit];
+            }
+        }
+        
+        // For each number, find the maximum XOR by greedily choosing opposite bits
+        int max_xor = 0;
+        for (int num : nums) {
+            TrieNode* node = root;
+            int current_xor = 0;
+            for (int i = 30; i >= 0; i--) {
+                int bit = (num >> i) & 1;
+                // Try to go to the opposite bit for maximum XOR
+                int desired = 1 - bit;
+                if (node->children[desired]) {
+                    current_xor |= (1 << i);
+                    node = node->children[desired];
+                } else {
+                    node = node->children[bit];
+                }
+            }
+            max_xor = max(max_xor, current_xor);
+        }
+        
+        return max_xor;
+    }
+};
+```
+
+**Complexity**: $O(32n) = O(n)$ time, $O(32n) = O(n)$ space for the trie
+
+---
+
+### Problem 13: Sum of Two Integers (LeetCode 371)
+
+**Problem**: Compute the sum of two integers without using `+` or `-`.
+
+**Input**: `a = 3, b = 5`
+**Output**: `8`
+
+**Hint**: Use XOR for sum without carry and AND + left shift for carry. This is how a full adder works in hardware!
+
+```cpp
+int getSum(int a, int b) {
+    while (b != 0) {
+        // Carry contains bits that will be carried to the next position
+        int carry = a & b;
+        
+        // XOR gives sum without considering carry
+        a = a ^ b;
+        
+        // Shift carry left by 1 (carry goes to next bit position)
+        b = carry << 1;
+    }
+    
+    return a;
+}
+
+// Example trace: a = 3 (011), b = 5 (101)
+// Iteration 1: carry = 011 & 101 = 001, a = 011 ^ 101 = 110, b = 001 << 1 = 010
+// Iteration 2: carry = 110 & 010 = 010, a = 110 ^ 010 = 100, b = 010 << 1 = 100
+// Iteration 3: carry = 100 & 100 = 100, a = 100 ^ 100 = 000, b = 100 << 1 = 1000
+// Iteration 4: carry = 000 & 1000 = 0000, a = 000 ^ 1000 = 1000, b = 0
+// Result: 8 ✓
+```
+
+**Complexity**: $O(32) = O(1)$ time (at most 32 iterations for 32-bit integers), $O(1)$ space
+
+---
+
+## Quick Reference — Which Problem Uses What Concept?
+
+| Problem | Key Bit Manipulation Concept | Related Note |
+|---------|------------------------------|--------------|
+| Counting Bits | Brian Kernighan's Algorithm | [Counting Set Bits](./count-set-bits) |
+| Number of 1 Bits | Population count | [Counting Set Bits](./count-set-bits) |
+| Power of Two | `n & (n-1)` trick | [Bit Manipulation Tricks](./bit-manipulation-tricks) |
+| Single Number I | XOR cancellation | [Single Number I](./single-number-i) |
+| Reverse Bits | Bit extraction + shifting | [Bitwise Operators](./bitwise-operators) |
+| Minimum Bit Flips | XOR + popcount | [Minimum Bit Flips](./minimum-bit-flips) |
+| Single Number II | Bit counting mod 3 | [Single Number II](./single-number-ii) |
+| Single Number III | Partition by differing bit | [Single Number III](./single-number-iii) |
+| Subsets | Binary enumeration | [Power Set using Bit Manipulation](./power-set-bit-manipulation) |
+| Divide Two Integers | Binary long division with shifts | [Divide Two Integers](./divide-two-integers) |
+| XOR Range | Pattern-based computation | [XOR Range](./xor-range) |
+| Max XOR in Array | Trie + greedy bit selection | Advanced (beyond scope) |
+| Sum of Two Integers | XOR + carry simulation | Hardware-level bit manipulation |
+
+---
+
+## Tips for Solving Bit Manipulation Problems
+
+1. **Always think about what the bits represent** — each position is an independent binary choice
+2. **XOR is your best friend** — remember `x ^ x = 0` and `x ^ 0 = x` for cancellation tricks
+3. **Rightmost set bit trick**: `n & -n` isolates the rightmost 1-bit (useful for partitioning)
+4. **Remove last set bit**: `n & (n-1)` clears the rightmost 1 (used in counting and power-of-two checks)
+5. **For range problems**, look for patterns — XOR of consecutive numbers has a period-4 pattern
+6. **When stuck on sign/overflow issues**, work with absolute values using `long` to avoid INT_MIN overflow
+7. **Practice recognizing when bit manipulation applies**: subset generation, counting, finding unique elements, parity checks

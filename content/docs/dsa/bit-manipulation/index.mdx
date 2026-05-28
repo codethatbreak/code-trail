@@ -1,0 +1,133 @@
+---
+title: "Bit Manipulation — Overview"
+---
+
+## What is Bit Manipulation?
+
+**Bit manipulation** refers to the practice of writing algorithms that operate directly on the binary representation (bits) of integers. Instead of treating numbers as abstract values, we work with them at the bit level — setting, clearing, toggling, shifting, and combining individual bits.
+
+### Why Learn Bit Manipulation?
+
+- **Performance**: Bit operations are among the fastest CPU instructions
+- **Space efficiency**: Pack multiple boolean flags into a single integer
+- **Interview staple**: Frequently tested in coding interviews (LeetCode Easy to Hard)
+- **Foundation for advanced topics**: Used in hashing, compression, cryptography, and data structures like tries and Bloom filters
+
+---
+
+## Core Concepts Covered in This Topic Family
+
+### 1. [Bitwise Operators](./bitwise-operators) — The Foundation
+
+The six fundamental bitwise operators:
+
+| Operator | Symbol | Description | Example (5 & 3) |
+|----------|--------|-------------|-----------------|
+| AND | `&` | Both bits must be 1 | `0101 & 0011 = 0001` |
+| OR | `\|` | At least one bit is 1 | `0101 \| 0011 = 0111` |
+| XOR | `^` | Bits differ → result is 1 | `0101 ^ 0011 = 0110` |
+| NOT | `~` | Flips all bits | `~0101 = ...1010` |
+| Left Shift | `<<` | Shifts bits left (doubles) | `5 << 1 = 10` |
+| Right Shift | `>>` | Shifts bits right (halves) | `5 >> 1 = 2` |
+
+**Key XOR properties**:
+- `x ^ x = 0` — any number XORed with itself is zero
+- `x ^ 0 = x` — any number XORed with zero is itself
+- `x ^ y ^ x = y` — XOR is commutative and associative
+
+### 2. [Bit Manipulation Tricks](./bit-manipulation-tricks) — Essential Patterns
+
+| Trick | Formula | Use Case |
+|-------|---------|----------|
+| Swap without temp variable | `a^=b; b^=a; a^=b` | Memory-constrained environments |
+| Check i-th bit is set | `(n >> i) & 1` or `n & (1 << i)` | Bit inspection |
+| Set i-th bit to 1 | `n \| (1 << i)` | Enable a flag/option |
+| Clear i-th bit to 0 | `n & ~(1 << i)` | Disable a flag/option |
+| Toggle i-th bit | `n ^ (1 << i)` | Flip a flag/option |
+| Remove rightmost set bit | `n & (n - 1)` | Count/set bits, power of two check |
+| Check power of two | `n > 0 && (n & (n-1)) == 0` | Quick validation |
+
+### 3. [Counting Set Bits](./count-set-bits) — Population Count
+
+**Brian Kernighan's Algorithm**: Instead of checking all 32 bits, only iterate over set bits using `n &= (n - 1)` to remove the rightmost set bit one at a time.
+
+- **Time**: $O(k)$ where k = number of set bits
+- **Built-in**: Use `__builtin_popcount(n)` for fastest execution
+
+### 4. [Minimum Bit Flips](./minimum-bit-flips) — Converting Between Numbers
+
+Find the minimum flips to convert one number to another by XORing them and counting set bits in the result.
+
+$$\text{flips} = \text{popcount}(start \oplus goal)$$
+
+### 5. [Power Set using Bit Manipulation](./power-set-bit-manipulation) — Enumerating Subsets
+
+Use binary numbers from `0` to $2^n - 1$ to represent all possible subsets of an n-element array. Each bit position controls whether the corresponding element is included.
+
+- **Total subsets**: $2^n$
+- **Time complexity**: $O(n \times 2^n)$
+
+### 6. [Single Number I](./single-number-i) — XOR Cancellation
+
+When every element appears twice except one, XOR all elements together. Pairs cancel to zero, leaving only the unique element.
+
+$$\text{answer} = a_1 \oplus a_2 \oplus ... \oplus a_n$$
+
+### 7. [Single Number II](./single-number-ii) — Triplets
+
+When every element appears three times except one, count bits at each position. The unique element's bits are those where `count % 3 == 1`.
+
+### 8. [Single Number III](./single-number-iii) — Two Unique Elements
+
+XOR all to get $a \oplus b$, find a differing bit using the rightmost set bit trick, then partition and solve two Single Number I problems.
+
+### 9. [XOR of Numbers in Range](./xor-range) — Pattern-Based Computation
+
+The XOR from 0 to n follows a period-4 pattern: `[n, 1, n+1, 0]` based on `n % 4`. Use this to compute range XOR in $O(1)$ time.
+
+### 10. [Divide Two Integers](./divide-two-integers) — Binary Long Division
+
+Implement division using bit shifts (doubling the divisor) instead of repeated subtraction, achieving $O(\log n)$ time complexity.
+
+---
+
+## Problem Set
+
+Practice all these concepts with our curated problem set: **[Problem Set 1](./problem-set-1)** — organized by difficulty from Easy to Hard.
+
+---
+
+## When to Use Bit Manipulation
+
+| Scenario | Approach |
+|----------|----------|
+| Find unique element among pairs | XOR all elements |
+| Count/set bits efficiently | Brian Kernighan's Algorithm |
+| Generate all subsets | Binary enumeration (0 to $2^n-1$) |
+| Check power of two | `n & (n-1) == 0` |
+| Swap without temp variable | Three XOR operations |
+| Find minimum bit flips | XOR + popcount |
+| Divide without `/` operator | Binary long division with shifts |
+
+---
+
+## Common Pitfalls
+
+1. **Shifting by ≥ 32 on a 32-bit int** is undefined behavior in C/C++ — always validate shift amounts
+2. **Left shift overflow**: `1 << 31` on signed 32-bit int overflows. Use `(unsigned int)1 << i` or `1LL << i` for safety
+3. **NOT operator with negative numbers**: `~x = -(x+1)` in two's complement — be careful when using it as a mask
+4. **INT_MIN / -1 overflow**: The only case where division overflows — always check this first!
+5. **Negative right shift**: Right-shifting negative numbers is implementation-defined in C/C++ — use unsigned types
+
+---
+
+## See Also
+
+- [Bitwise Operators](./bitwise-operators) — Foundation for all bitwise operations
+- [Counting Set Bits](./count-set-bits) — Brian Kernighan's Algorithm
+- [Minimum Bit Flips](./minimum-bit-flips) — XOR + popcount approach
+- [Power Set using Bit Manipulation](./power-set-bit-manipulation) — Binary enumeration of subsets
+- [Single Number I/II/III](./single-number-i), [./single-number-ii], [./single-number-iii] — XOR tricks for finding unique elements
+- [XOR Range](./xor-range) — Pattern-based range computation
+- [Divide Two Integers](./divide-two-integers) — Binary long division with bit shifts
+- [Problem Set 1](./problem-set-1) — Practice problems by difficulty

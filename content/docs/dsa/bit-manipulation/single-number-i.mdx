@@ -1,0 +1,154 @@
+---
+title: "Single Number I — Finding the Unique Element"
+---
+
+## Definition and Concept
+
+Given a **non-empty array** where every element appears **exactly twice**, except for one element that appears exactly once, find that single unique element. The solution must run in linear time $O(n)$ with constant space $O(1)$.
+
+### Intuition — How to Think About This
+
+The key insight is the **XOR cancellation property**:
+- `x ^ x = 0` (any number XORed with itself gives zero)
+- `x ^ 0 = x` (any number XORed with zero gives itself back)
+
+If we XOR all elements in the array together, every pair of identical numbers cancels out to 0, leaving only the unique element!
+
+```
+Array: [4, 1, 2, 1, 2]
+
+XOR all: 4 ^ 1 ^ 2 ^ 1 ^ 2
+         = 4 ^ (1 ^ 1) ^ (2 ^ 2)    ← regroup pairs
+         = 4 ^ 0 ^ 0                  ← x ^ x = 0
+         = 4                          ← x ^ 0 = x
+
+Answer: 4 ✓
+```
+
+### Visual Representation — XOR Cancellation Flow
+
+```
+Step-by-step XOR accumulation:
+
+Initial: result = 0
+
+result = 0 ^ 4 = 4        (binary: 0100)
+result = 4 ^ 1 = 5        (binary: 0101)
+result = 5 ^ 2 = 7        (binary: 0111)
+result = 7 ^ 1 = 6        (binary: 0110) ← 1 cancels out!
+result = 6 ^ 2 = 4        (binary: 0100) ← 2 cancels out!
+
+Final result: 4 ✓
+```
+
+### Step-by-Step Thinking Process
+
+1. **What property can help us eliminate pairs?** XOR — same values cancel to zero
+2. **How do we apply it?** XOR all elements together in a single pass
+3. **Why does this work?** Every pair `x ^ x = 0`, and the unique element remains: `unique ^ 0 = unique`
+4. **What about order?** XOR is commutative and associative, so order doesn't matter
+
+### The Algorithm / Step-by-Step Logic
+
+```
+Step 1: Initialize result = 0
+Step 2: For each number in the array:
+        a. XOR it with result: result = result ^ num
+Step 3: Return result (this is the unique element)
+```
+
+### Worked Example — Step by Step
+
+#### Example 1: nums = [4, 1, 2, 1, 2]
+
+```
+result = 0
+
+Iteration 1: result = 0 ^ 4 = 4
+Iteration 2: result = 4 ^ 1 = 5
+Iteration 3: result = 5 ^ 2 = 7
+Iteration 4: result = 7 ^ 1 = 6   ← pair (1,1) cancels!
+Iteration 5: result = 6 ^ 2 = 4   ← pair (2,2) cancels!
+
+Answer: 4 ✓
+```
+
+#### Example 2: nums = [2, 2, 1]
+
+```
+result = 0
+
+Iteration 1: result = 0 ^ 2 = 2
+Iteration 2: result = 2 ^ 2 = 0   ← pair (2,2) cancels!
+Iteration 3: result = 0 ^ 1 = 1
+
+Answer: 1 ✓
+```
+
+#### Example 3: nums = [1]
+
+```
+result = 0
+
+Iteration 1: result = 0 ^ 1 = 1
+
+Answer: 1 ✓ (only one element, it's the answer)
+```
+
+### Complexity Analysis
+
+- **Time Complexity**: $O(n)$ — single pass through the array
+- **Space Complexity**: $O(1)$ — only one variable used
+
+### Implementation Code — C++
+
+```cpp
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int singleNumber(vector<int>& nums) {
+    int result = 0;
+    
+    for (int num : nums) {
+        result ^= num;  // XOR each element
+    }
+    
+    return result;
+}
+
+// One-liner version using accumulate with bit_xor
+#include <numeric>
+#include <functional>
+
+int singleNumberOneLiner(vector<int>& nums) {
+    return accumulate(nums.begin(), nums.end(), 0, bit_xor<int>());
+}
+
+int main() {
+    vector<int> test1 = {4, 1, 2, 1, 2};
+    cout << "Single number: " << singleNumber(test1) << endl;  // Output: 4
+    
+    vector<int> test2 = {2, 2, 1};
+    cout << "Single number: " << singleNumber(test2) << endl;  // Output: 1
+    
+    vector<int> test3 = {1};
+    cout << "Single number: " << singleNumber(test3) << endl;  // Output: 1
+    
+    return 0;
+}
+```
+
+### Key Logic Summary / Important Points
+
+- **XOR cancellation is the key**: `x ^ x = 0` eliminates pairs, leaving only the unique element
+- **Order doesn't matter** because XOR is commutative (`a ^ b = b ^ a`) and associative (`(a ^ b) ^ c = a ^ (b ^ c)`)
+- **This is optimal**: $O(n)$ time and $O(1)$ space — you can't do better than reading every element once
+- **Edge cases handled naturally**: Single element array, all elements same except one, negative numbers (XOR works on bit patterns regardless of sign)
+- **Common interview follow-up**: What if two elements appear once? → See [Single Number III](./single-number-iii)
+
+### See Also
+
+- [Bitwise Operators](./bitwise-operators) — XOR properties (`x ^ x = 0`, `x ^ 0 = x`)
+- [Single Number II](./single-number-ii) — Extension: elements appear three times
+- [Single Number III](./single-number-iii) — Extension: two unique elements

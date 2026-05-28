@@ -1,0 +1,235 @@
+---
+title: "Counting Set Bits — Brian Kernighan's Algorithm"
+---
+
+## Definition and Concept
+
+**Counting set bits** (also called **population count** or **Hamming weight**) means counting how many `1` bits are present in the binary representation of a number. This is one of the most fundamental bit manipulation operations with wide applications in competitive programming, cryptography, and data compression.
+
+### Visual Representation — Bit-Level View
+
+```
+Number: 40 (decimal)
+
+Binary representation (8-bit):    0010 1000
+
+Counting set bits:
+Position:   76543210
+            ────────
+Bits:       00101000
+             ↑   ↑
+           Set  Set
+
+Number of set bits = 2 ✓
+```
+
+### Intuition — How to Think About This
+
+**Why count set bits?** Many problems reduce to counting how many "things" are active. In bit manipulation, each `1` represents an active element (a selected subset, a flag that's on, etc.).
+
+There are three main approaches:
+
+1. **Naive approach**: Check every bit position one by one
+2. **Brian Kernighan's Algorithm**: Only iterate over set bits (more efficient!)
+3. **Built-in function**: Use compiler/library built-ins (`__builtin_popcount`)
+
+---
+
+## Approach 1: Naive — Check Every Bit Position
+
+### The Algorithm
+
+```
+Step 1: Initialize count = 0
+Step 2: For each bit position i from 0 to 31:
+        a. Check if the i-th bit is set using (n >> i) & 1
+        b. If yes, increment count
+Step 3: Return count
+```
+
+### Worked Example — Step by Step
+
+```
+Input: n = 40 (binary: ...0010 1000)
+
+i=0: (40 >> 0) & 1 = 40 & 1 = 0 → not set
+i=1: (40 >> 1) & 1 = 20 & 1 = 0 → not set
+i=2: (40 >> 2) & 1 = 10 & 1 = 0 → not set
+i=3: (40 >> 3) & 1 = 5 & 1 = 1 → SET! count = 1
+i=4: (40 >> 4) & 1 = 2 & 1 = 0 → not set
+i=5: (40 >> 5) & 1 = 1 & 1 = 1 → SET! count = 2
+i=6 to i=31: all zeros
+
+Final answer: 2 ✓
+```
+
+### Implementation Code — C++
+
+```cpp
+int countSetBitsNaive(int n) {
+    int count = 0;
+    for (int i = 0; i < 32; i++) {
+        if ((n >> i) & 1) {
+            count++;
+        }
+    }
+    return count;
+}
+```
+
+### Complexity Analysis
+
+- **Time Complexity**: $O(32) = O(1)$ — always checks all 32 bits regardless of the number
+- **Space Complexity**: $O(1)$
+
+---
+
+## Approach 2: Brian Kernighan's Algorithm (Optimal)
+
+### Intuition — The "Aha!" Moment
+
+From [Bit Manipulation Tricks](./bit-manipulation-tricks), we know that `n & (n - 1)` removes the **rightmost set bit**. 
+
+**Key insight**: Instead of checking all 32 bits, why not only iterate over the bits that are actually set? If a number has k set bits, this algorithm runs exactly k times!
+
+```
+Example: n = 40 (binary: 101000)
+
+Iteration 1: count=0, n=101000
+  n & (n-1) = 101000 & 100111 = 100000 → removed rightmost set bit!
+  count = 1
+
+Iteration 2: count=1, n=100000
+  n & (n-1) = 100000 & 011111 = 000000 → removed last set bit!
+  count = 2
+
+Iteration 3: n = 0 → stop!
+
+Final answer: 2 ✓
+```
+
+### The Algorithm
+
+```
+Step 1: Initialize count = 0
+Step 2: While n > 0:
+        a. Remove rightmost set bit: n = n & (n - 1)
+        b. Increment count
+Step 3: Return count
+```
+
+### Worked Example — Step by Step
+
+```
+Input: n = 84 (binary: 1010100), expected answer: 3
+
+Iteration 1: n = 1010100, count = 0
+  n - 1 = 1010011
+  n & (n-1) = 1010100 & 1010011 = 1010000 → removed bit at position 2
+  count = 1
+
+Iteration 2: n = 1010000, count = 1
+  n - 1 = 1001111
+  n & (n-1) = 1010000 & 1001111 = 1000000 → removed bit at position 5
+  count = 2
+
+Iteration 3: n = 1000000, count = 2
+  n - 1 = 0111111
+  n & (n-1) = 1000000 & 0111111 = 0000000 → removed bit at position 6
+  count = 3
+
+Iteration 4: n = 0 → loop ends!
+
+Final answer: 3 ✓ (bits at positions 2, 5, and 6 are set)
+```
+
+### Implementation Code — C++
+
+```cpp
+int countSetBitsKernighan(int n) {
+    int count = 0;
+    while (n > 0) {
+        n = n & (n - 1);  // Remove rightmost set bit
+        count++;
+    }
+    return count;
+}
+
+// For unsigned integers, use:
+int countSetBitsUnsigned(unsigned int n) {
+    int count = 0;
+    while (n > 0) {
+        n &= (n - 1);
+        count++;
+    }
+    return count;
+}
+```
+
+### Complexity Analysis
+
+- **Time Complexity**: $O(k)$ where k = number of set bits. In the worst case $O(32) = O(1)$, but for sparse numbers it's much faster!
+- **Space Complexity**: $O(1)$
+
+---
+
+## Approach 3: Built-in Function (Fastest in Practice)
+
+### The Algorithm
+
+Modern compilers provide built-in functions that use CPU instructions directly:
+
+```cpp
+// GCC/Clang
+int count = __builtin_popcount(n);      // for unsigned int
+int count = __builtin_popcountl(n);     // for unsigned long
+int count = __builtin_popcountll(n);    // for unsigned long long
+
+// MSVC
+int count = _mm_popcnt_u32(n);          // requires <intrin.h> and SSE4.2 support
+
+// C++20 standard library (portable!)
+#include <bit>
+int count = std::popcount(n);           // C++20!
+```
+
+### Complexity Analysis
+
+- **Time Complexity**: $O(1)$ — maps to a single CPU instruction (`POPCNT`)
+- **Space Complexity**: $O(1)$
+
+---
+
+## Worked Example — Comparing All Approaches
+
+```
+Input: n = 84 (binary: 01010100)
+
+Approach 1 (Naive): Checks all 32 bits → always takes same time
+  Iterations: 32, Answer: 3 ✓
+
+Approach 2 (Kernighan): Only iterates over set bits
+  Iteration 1: n = 84 & 83 = 80, count = 1
+  Iteration 2: n = 80 & 79 = 64, count = 2
+  Iteration 3: n = 64 & 63 = 0, count = 3
+  Answer: 3 ✓ (only 3 iterations!)
+
+Approach 3 (Built-in): Single CPU instruction
+  Answer: 3 ✓ (fastest in practice)
+```
+
+---
+
+## Key Logic Summary / Important Points
+
+- **Brian Kernighan's algorithm** is $O(k)$ where k = number of set bits — much faster than naive for sparse numbers
+- **`n & (n - 1)` removes the rightmost set bit** — this is the key operation used throughout bit manipulation
+- **Built-in functions** (`__builtin_popcount`, `std::popcount`) are fastest in practice as they use dedicated CPU instructions
+- **For negative numbers**, be careful: in two's complement, many bits may be set. Use unsigned types when counting bits of arbitrary integers
+- **Applications**: Counting set bits is used in Hamming distance, parity checking, combinatorial algorithms, and the Single Number problems
+
+### See Also
+
+- [Bit Manipulation Tricks](./bit-manipulation-tricks) — The `n & (n - 1)` trick is covered here
+- [Single Number I](./single-number-i) — Uses XOR to find unique elements
+- [Minimum Bit Flips](./minimum-bit-flips) — Uses popcount of XOR result

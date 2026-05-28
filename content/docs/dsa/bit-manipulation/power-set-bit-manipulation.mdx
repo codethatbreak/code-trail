@@ -1,0 +1,199 @@
+---
+title: "Power Set using Bit Manipulation"
+---
+
+## Definition and Concept
+
+The **power set** of a collection is the set of all possible subsets, including the empty set and the full set itself. For an array of $n$ elements, there are exactly $2^n$ subsets.
+
+Bit manipulation provides an elegant way to generate all subsets by using binary numbers from `0` to `2^n - 1`, where each bit position represents whether an element is included in a subset or not.
+
+### Visual Representation — Mapping Bits to Subsets
+
+```
+Array: [A, B, C] (n = 3)
+
+Binary | Subset Index | Elements Included | Subset
+-------|--------------|-------------------|--------
+ 000    |     0        | none              | {}
+ 001    |     1        | A                 | {A}
+ 010    |     2        | B                 | {B}
+ 011    |     3        | A, B              | {A, B}
+ 100    |     4        | C                 | {C}
+ 101    |     5        | A, C              | {A, C}
+ 110    |     6        | B, C              | {B, C}
+ 111    |     7        | A, B, C           | {A, B, C}
+
+Total: 2^3 = 8 subsets ✓
+```
+
+### Intuition — How to Think About This
+
+**The core insight**: Each element has exactly **two choices** — either it's in the subset or it isn't. For $n$ elements, that gives us $2 \times 2 \times ... \times 2 = 2^n$ possible combinations.
+
+We can represent each combination as a binary number:
+- Bit `i` = `1` → include element at index `i` in the subset
+- Bit `i` = `0` → exclude element at index `i` from the subset
+
+By counting from `0` to `2^n - 1`, we naturally enumerate all possible subsets!
+
+### Step-by-Step Thinking Process
+
+1. **How many subsets?** For $n$ elements, there are $2^n$ subsets
+2. **How to represent each subset?** Use a binary number of length $n$: bit `i` tells us whether element `arr[i]` is included
+3. **How to iterate through all subsets?** Count from `0` (all zeros = empty set) to `2^n - 1` (all ones = full set)
+4. **For each number**, check each bit: if bit `j` is set, include `arr[j]` in that subset
+
+### The Algorithm / Step-by-Step Logic
+
+```
+Given array arr of size n:
+
+Step 1: Calculate total subsets = 2^n (or 1 << n)
+Step 2: For each number from 0 to (2^n - 1):
+        a. Create an empty subset
+        b. For each bit position j from 0 to n-1:
+            i. Check if the j-th bit is set using ((num >> j) & 1)
+            ii. If yes, include arr[j] in this subset
+        c. Store or print this subset
+Step 3: All subsets are generated ✓
+```
+
+### Worked Example — Step by Step
+
+#### Example: Array = [1, 2, 3], n = 3
+
+```
+Total subsets = 2^3 = 8 (numbers 0 to 7)
+
+Number 0 (binary: 000):
+  Bit 0 is 0 → skip arr[0]=1
+  Bit 1 is 0 → skip arr[1]=2
+  Bit 2 is 0 → skip arr[2]=3
+  Subset: [] ✓ (empty set)
+
+Number 1 (binary: 001):
+  Bit 0 is 1 → include arr[0]=1
+  Bit 1 is 0 → skip arr[1]=2
+  Bit 2 is 0 → skip arr[2]=3
+  Subset: [1] ✓
+
+Number 2 (binary: 010):
+  Bit 0 is 0 → skip arr[0]=1
+  Bit 1 is 1 → include arr[1]=2
+  Bit 2 is 0 → skip arr[2]=3
+  Subset: [2] ✓
+
+Number 3 (binary: 011):
+  Bit 0 is 1 → include arr[0]=1
+  Bit 1 is 1 → include arr[1]=2
+  Bit 2 is 0 → skip arr[2]=3
+  Subset: [1, 2] ✓
+
+Number 4 (binary: 100):
+  Bit 0 is 0 → skip arr[0]=1
+  Bit 1 is 0 → skip arr[1]=2
+  Bit 2 is 1 → include arr[2]=3
+  Subset: [3] ✓
+
+Number 5 (binary: 101):
+  Bit 0 is 1 → include arr[0]=1
+  Bit 1 is 0 → skip arr[1]=2
+  Bit 2 is 1 → include arr[2]=3
+  Subset: [1, 3] ✓
+
+Number 6 (binary: 110):
+  Bit 0 is 0 → skip arr[0]=1
+  Bit 1 is 1 → include arr[1]=2
+  Bit 2 is 1 → include arr[2]=3
+  Subset: [2, 3] ✓
+
+Number 7 (binary: 111):
+  Bit 0 is 1 → include arr[0]=1
+  Bit 1 is 1 → include arr[1]=2
+  Bit 2 is 1 → include arr[2]=3
+  Subset: [1, 2, 3] ✓ (full set)
+
+All 8 subsets generated! ✓
+```
+
+### Complexity Analysis
+
+- **Time Complexity**: $O(n \times 2^n)$ — we iterate through $2^n$ numbers, and for each we check $n$ bits
+- **Space Complexity**: $O(n)$ — to store one subset at a time (or $O(n \times 2^n)$ if storing all subsets)
+
+### Implementation Code — C++
+
+```cpp
+#include <iostream>
+#include <vector>
+using namespace std;
+
+// Generate power set using bit manipulation
+void printPowerSet(vector<int>& arr) {
+    int n = arr.size();
+    int totalSubsets = 1 << n;  // 2^n subsets
+    
+    cout << "All subsets:\n";
+    
+    for (int num = 0; num < totalSubsets; num++) {
+        vector<int> subset;
+        
+        // Check each bit position
+        for (int j = 0; j < n; j++) {
+            if ((num >> j) & 1) {  // If j-th bit is set
+                subset.push_back(arr[j]);
+            }
+        }
+        
+        // Print the subset
+        cout << "[";
+        for (int i = 0; i < (int)subset.size(); i++) {
+            if (i > 0) cout << ", ";
+            cout << subset[i];
+        }
+        cout << "]\n";
+    }
+}
+
+// Alternative: return power set as vector of vectors
+vector<vector<int>> getPowerSet(vector<int>& arr) {
+    int n = arr.size();
+    int totalSubsets = 1 << n;
+    vector<vector<int>> result;
+    
+    for (int num = 0; num < totalSubsets; num++) {
+        vector<int> subset;
+        
+        for (int j = 0; j < n; j++) {
+            if ((num >> j) & 1) {
+                subset.push_back(arr[j]);
+            }
+        }
+        
+        result.push_back(subset);
+    }
+    
+    return result;
+}
+
+int main() {
+    vector<int> arr = {1, 2, 3};
+    printPowerSet(arr);
+    return 0;
+}
+```
+
+### Key Logic Summary / Important Points
+
+- **$n$ elements → $2^n$ subsets** — each element has two choices (in or out)
+- **Binary counting from `0` to `2^n - 1` naturally generates all subsets** — bit `j` controls inclusion of `arr[j]`
+- **Use `(num >> j) & 1` to check if the j-th bit is set** — this is the key operation inside the loop
+- **For large n (n > 20)**, $2^n$ becomes too large for practical use — consider backtracking/recursive approaches instead
+- **This approach generates subsets in lexicographic order of their binary representation**, not sorted by size
+- **Alternative**: You can also iterate bits from `n-1` down to `0` and check `(num >> j) & 1` — the result is the same
+
+### See Also
+
+- [Bit Manipulation Tricks](./bit-manipulation-tricks) — Bit checking with `(num >> j) & 1`
+- [Single Number I](./single-number-i) — Uses XOR cancellation, related to subset parity problems

@@ -1,0 +1,142 @@
+---
+title: "Minimum Bit Flips to Convert Number"
+---
+
+## Definition and Concept
+
+Given two integers `start` and `goal`, find the **minimum number of bit flips** required to convert `start` into `goal`. A bit flip changes a `0` to `1` or a `1` to `0` at any position.
+
+### Intuition — How to Think About This
+
+The key insight is: **a bit needs to be flipped if and only if the two numbers differ at that position**. 
+
+XOR (`^`) gives us exactly this information! When we XOR two numbers, every bit position where they differ produces a `1`, and positions where they're the same produce a `0`.
+
+So the problem reduces to: **count the number of set bits in (start ^ goal)**.
+
+### Visual Representation — Bit-Level Comparison
+
+```
+Number start:   10 (binary: 1010)
+Number goal:     7 (binary: 0111)
+                ──────────
+XOR result:     1101 (= 13)
+                 ↑   ↑↑
+               flip flip-flip
+
+Positions that differ: positions 0, 2, and 3
+Number of flips needed = 3 ✓
+```
+
+### Step-by-Step Thinking Process
+
+1. **What do I need to know?** Which bit positions differ between start and goal?
+2. **How does XOR help?** `a ^ b` has a `1` at every position where a and b differ
+3. **What's the answer?** Count of set bits in `(start ^ goal)` — each set bit represents one flip needed
+
+### The Algorithm / Step-by-Step Logic
+
+```
+Step 1: Compute XOR = start ^ goal (finds all differing positions)
+Step 2: Count the number of set bits in XOR
+Step 3: Return the count as the minimum flips needed
+```
+
+### Worked Example — Step by Step
+
+#### Example 1: start = 10, goal = 7
+
+```
+Step 1: Compute XOR
+  start = 10 → binary: 1010
+  goal  =  7 → binary: 0111
+  XOR   =    → binary: 1101 (= 13)
+
+Step 2: Count set bits in 1101
+  Position 0: bit is 1 → flip needed ✓
+  Position 1: bit is 0 → no flip needed
+  Position 2: bit is 1 → flip needed ✓
+  Position 3: bit is 1 → flip needed ✓
+
+Step 3: Answer = 3 flips
+
+Verification: Flip positions 0, 2, 3 of 1010:
+  Original:  1010 (10)
+  Flip pos 0: 1011 (11)
+  Flip pos 2: 1111 (15)
+  Flip pos 3: 0111 (7) ✓ = goal!
+```
+
+#### Example 2: start = 3, goal = 4
+
+```
+Step 1: Compute XOR
+  start = 3 → binary: 0011
+  goal  = 4 → binary: 0100
+  XOR   =    → binary: 0111 (= 7)
+
+Step 2: Count set bits in 0111
+  Set bits at positions 0, 1, 2 → count = 3
+
+Step 3: Answer = 3 flips
+
+Verification: Flip all three bits of 0011 to get 0100 ✓
+```
+
+### Complexity Analysis
+
+- **Time Complexity**: $O(k)$ where k = number of set bits in `(start ^ goal)`, using Brian Kernighan's algorithm. Worst case $O(32) = O(1)$ for 32-bit integers
+- **Space Complexity**: $O(1)$ — only a few variables
+
+### Implementation Code — C++
+
+```cpp
+#include <iostream>
+
+// Approach 1: Using XOR + Brian Kernighan's Algorithm
+int minBitFlipsApproach1(int start, int goal) {
+    int xorResult = start ^ goal;  // Find differing positions
+    int count = 0;
+    
+    while (xorResult > 0) {
+        xorResult &= (xorResult - 1);  // Remove rightmost set bit
+        count++;
+    }
+    return count;
+}
+
+// Approach 2: Using built-in popcount (fastest in practice)
+int minBitFlipsApproach2(int start, int goal) {
+    return __builtin_popcount(start ^ goal);
+}
+
+// Approach 3: C++20 standard library
+#include <bit>
+int minBitFlipsCpp20(int start, int goal) {
+    return std::popcount(static_cast<unsigned>(start ^ goal));
+}
+
+int main() {
+    // Test with examples from the video
+    std::cout << "start=10, goal=7: " 
+              << minBitFlipsApproach1(10, 7) << " flips\n";   // Output: 3
+    
+    std::cout << "start=3, goal=4: " 
+              << minBitFlipsApproach1(3, 4) << " flips\n";   // Output: 3
+    
+    return 0;
+}
+```
+
+### Key Logic Summary / Important Points
+
+- **XOR is the key**: `a ^ b` gives a `1` at every position where bits differ — this directly tells us which positions need flipping
+- **Count set bits in XOR result** = minimum flips needed (each set bit = one flip)
+- **This works because** each differing bit requires exactly one flip, and there's no way to do better than flipping each differing bit individually
+- **Alternative approach**: You could also iterate through all 32 positions and count differences manually, but XOR + popcount is cleaner and faster
+- **Edge case**: If `start == goal`, XOR = 0, so answer = 0 flips ✓
+
+### See Also
+
+- [Counting Set Bits](./count-set-bits) — Uses Brian Kernighan's Algorithm for counting set bits
+- [Bitwise Operators](./bitwise-operators) — XOR operator properties and behavior

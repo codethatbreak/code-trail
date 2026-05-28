@@ -1,0 +1,385 @@
+---
+title: "Bit Manipulation Tricks — Swap, Check/Set/Clear/Toggle Bits"
+---
+
+## Definition and Concept
+
+This note covers essential bit manipulation tricks commonly used in competitive programming and interviews. These are practical applications of the bitwise operators covered in [Bitwise Operators](./bitwise-operators).
+
+### Visual Representation — Bit Operations Overview
+
+```
+Given: n = 13 (binary: ...0000 1101)
+
+Operation          | Formula              | Result (n=13, i=2)
+-------------------|----------------------|--------------------
+Check ith bit      | (n >> i) & 1         | (13>>2)&1 = 3&1 = 1 ✓
+Set ith bit        | n | (1 << i)         | 13 | 4 = 15
+Clear ith bit      | n & ~(1 << i)        | 13 & ~4 = 9
+Toggle ith bit     | n ^ (1 << i)         | 13 ^ 4 = 9
+Remove last set bit| n & (n - 1)          | 12 & 15 = 12 → 8
+```
+
+---
+
+## Trick 1: Swap Two Numbers Without a Third Variable
+
+### Intuition — How to Think About This
+
+The XOR operator has two magical properties:
+- `a ^ a = 0` (same numbers cancel out)
+- `a ^ 0 = a` (XOR with zero gives the number back)
+
+Using these, we can swap without any temporary storage!
+
+### The Algorithm — Step by Step
+
+```
+Given: a and b
+
+Step 1: a = a ^ b          → a now holds "combined" info of both
+Step 2: b = a ^ b           → (a^b) ^ b = a ^ (b^b) = a ^ 0 = a
+Step 3: a = a ^ b           → (a^b) ^ a = (a^a) ^ b = 0 ^ b = b
+
+Result: a and b are swapped! ✓
+```
+
+### Worked Example — Step by Step
+
+```
+Input: a = 5 (101), b = 6 (110)
+
+Step 1: a = a ^ b = 5 ^ 6
+  101
+^ 110
+─────
+  011 = 3
+Now: a = 3, b = 6
+
+Step 2: b = a ^ b = 3 ^ 6
+  011
+^ 110
+─────
+  101 = 5
+Now: a = 3, b = 5
+
+Step 3: a = a ^ b = 3 ^ 5
+  011
+^ 101
+─────
+  110 = 6
+Now: a = 6, b = 5 ✓ SWAPPED!
+```
+
+### Implementation Code — C++
+
+```cpp
+void swap(int &a, int &b) {
+    a = a ^ b;      // Step 1
+    b = a ^ b;      // Step 2 → b becomes original a
+    a = a ^ b;      // Step 3 → a becomes original b
+}
+
+// Alternative: using XOR swap in one expression (not recommended for readability)
+// std::tie(a, b) = std::make_pair(b, a);  // C++17 structured binding
+```
+
+### Complexity Analysis
+
+- **Time Complexity**: $O(1)$ — three XOR operations
+- **Space Complexity**: $O(1)$ — no extra space
+
+---
+
+## Trick 2: Check if the i-th Bit is Set
+
+### Intuition
+
+To check a specific bit, we need to isolate it. We can either:
+1. **Right-shift** the target bit to position 0 and AND with 1
+2. **Left-shift** a 1 to the target position and AND with n
+
+### The Algorithm — Two Approaches
+
+```cpp
+// Approach 1: Right shift (brings the i-th bit to position 0)
+bool isSet(int n, int i) {
+    return ((n >> i) & 1) == 1;
+}
+
+// Approach 2: Left shift (creates a mask at position i)
+bool isSet(int n, int i) {
+    return (n & (1 << i)) != 0;
+}
+```
+
+### Worked Example — Step by Step
+
+```
+Input: n = 13 (binary: ...0000 1101), check bit at position i = 2
+
+Approach 1 (Right shift):
+  n >> 2 = 13 >> 2 = 3 (binary: 0011)
+  3 & 1 = 0011 & 0001 = 0001 = 1 → SET ✓
+
+Approach 2 (Left shift):
+  1 << 2 = 4 (binary: 0100)
+  13 & 4 = 1101 & 0100 = 0100 = 4 ≠ 0 → SET ✓
+
+Now check bit at position i = 1:
+Approach 1: (13 >> 1) & 1 = 6 & 1 = 110 & 001 = 0 → NOT SET ✓
+Approach 2: 13 & (1 << 1) = 13 & 2 = 1101 & 0010 = 0 → NOT SET ✓
+```
+
+---
+
+## Trick 3: Set the i-th Bit to 1
+
+### Intuition
+
+Use OR (`|`) with a mask that has only the i-th bit set. OR forces bits to 1 where the mask has 1s, leaving other bits unchanged.
+
+### The Algorithm
+
+```
+Step 1: Create a mask with only the i-th bit set: (1 << i)
+Step 2: OR n with this mask: n | (1 << i)
+Result: The i-th bit is now 1; all other bits unchanged
+```
+
+### Worked Example — Step by Step
+
+```
+Input: n = 9 (binary: 1001), set bit at position i = 2
+
+Step 1: Create mask → 1 << 2 = 4 (binary: 0100)
+Step 2: OR → 9 | 4 = 1001 | 0100 = 1101 = 13
+
+Result: Bit at position 2 is now set. ✓
+```
+
+### Implementation Code — C++
+
+```cpp
+int setBit(int n, int i) {
+    return n | (1 << i);
+}
+```
+
+---
+
+## Trick 4: Clear the i-th Bit to 0
+
+### Intuition
+
+Use AND (`&`) with a mask that has all bits set EXCEPT the i-th bit. This forces only the i-th bit to 0 while preserving everything else.
+
+### The Algorithm
+
+```
+Step 1: Create a mask with only the i-th bit as 0: ~(1 << i)
+Step 2: AND n with this mask: n & ~(1 << i)
+Result: The i-th bit is now 0; all other bits unchanged
+```
+
+### Worked Example — Step by Step
+
+```
+Input: n = 13 (binary: 1101), clear bit at position i = 2
+
+Step 1: Create mask → ~(1 << 2) = ~4 = ...1111 1011
+Step 2: AND → 13 & ~4 = 1101 & 1011 = 1001 = 9
+
+Result: Bit at position 2 is now cleared. ✓
+```
+
+### Implementation Code — C++
+
+```cpp
+int clearBit(int n, int i) {
+    return n & ~(1 << i);
+}
+```
+
+---
+
+## Trick 5: Toggle the i-th Bit (0→1 or 1→0)
+
+### Intuition
+
+XOR flips bits where the mask has 1s. XORing with `(1 << i)` toggles only the i-th bit.
+
+### The Algorithm
+
+```
+Step 1: Create a mask with only the i-th bit set: (1 << i)
+Step 2: XOR n with this mask: n ^ (1 << i)
+Result: The i-th bit is flipped; all other bits unchanged
+```
+
+### Worked Example — Step by Step
+
+```
+Input: n = 13 (binary: 1101), toggle bit at position i = 2
+
+Step 1: Create mask → 1 << 2 = 4 (binary: 0100)
+Step 2: XOR → 13 ^ 4 = 1101 ^ 0100 = 1001 = 9
+
+Before: bit 2 was 1, now it's 0 ✓
+
+Now toggle bit at position i = 1 (was 0):
+Step 1: Create mask → 1 << 1 = 2 (binary: 0010)
+Step 2: XOR → 13 ^ 2 = 1101 ^ 0010 = 1111 = 15
+
+Before: bit 1 was 0, now it's 1 ✓
+```
+
+### Implementation Code — C++
+
+```cpp
+int toggleBit(int n, int i) {
+    return n ^ (1 << i);
+}
+```
+
+---
+
+## Trick 6: Remove the Rightmost Set Bit
+
+### Intuition — The "Aha!" Moment
+
+This is one of the most elegant bit tricks. Consider what happens when you subtract 1 from a number:
+
+- The **rightmost set bit** becomes 0
+- All bits to its right (which were 0) become 1
+- Bits to its left stay unchanged
+
+When you AND `n` with `(n - 1)`, the rightmost set bit gets cleared because:
+- At that position: `1 & 0 = 0` → it's turned off
+- To the right: all were 0 in n, so they stay 0
+- To the left: identical bits ANDed with themselves → unchanged
+
+### The Algorithm
+
+```
+Step 1: Compute (n - 1) — flips rightmost set bit and everything to its right
+Step 2: AND n with (n - 1): n & (n - 1)
+Result: Rightmost set bit is cleared; all other bits unchanged
+```
+
+### Visual Representation
+
+```
+Example: n = 40 (binary: 101000)
+
+n     = 101000    (rightmost set bit at position 3)
+n - 1 = 100111    (bit 3 flipped to 0, bits 2-0 flipped to 1)
+───────────
+n & (n-1) = 100000 = 32
+
+Rightmost set bit removed! ✓
+```
+
+### Worked Example — Step by Step
+
+```
+Input: n = 84 (binary: 1010100), remove rightmost set bit
+
+Step 1: n - 1 = 83 (binary: 1010011)
+Step 2: n & (n-1) = 1010100 & 1010011 = 1010000 = 80
+
+Result: Rightmost set bit removed. ✓
+
+Verify by repeating:
+n = 80 (binary: 1010000), n-1 = 79 (binary: 1001111)
+80 & 79 = 1010000 & 1001111 = 1000000 = 64
+
+n = 64 (binary: 1000000), n-1 = 63 (binary: 0111111)
+64 & 63 = 1000000 & 0111111 = 0000000 = 0
+
+All set bits removed one by one! ✓
+```
+
+### Implementation Code — C++
+
+```cpp
+// Remove rightmost set bit
+int removeLastSetBit(int n) {
+    return n & (n - 1);
+}
+
+// Check if power of two: only one set bit, so removing it gives 0
+bool isPowerOfTwo(int n) {
+    return n > 0 && (n & (n - 1)) == 0;
+}
+```
+
+### Complexity Analysis
+
+- **Time Complexity**: $O(1)$ — single bitwise operation
+- **Space Complexity**: $O(1)$
+
+---
+
+## Trick 7: Check if a Number is a Power of Two
+
+### Intuition
+
+A power of two has exactly **one bit set** in its binary representation (e.g., 1, 2, 4, 8, 16...). When we apply `n & (n - 1)`, it removes that single set bit, leaving 0.
+
+### The Algorithm
+
+```
+Step 1: Check n > 0 (power of two must be positive)
+Step 2: Check if n & (n - 1) == 0
+If both true → power of two ✓
+```
+
+### Worked Example — Step by Step
+
+```
+Input: n = 16 (binary: 10000)
+
+Step 1: n > 0? Yes ✓
+Step 2: n & (n-1) = 16 & 15 = 10000 & 01111 = 00000 = 0 → Power of two! ✓
+
+Input: n = 13 (binary: 1101)
+
+Step 1: n > 0? Yes ✓
+Step 2: n & (n-1) = 13 & 12 = 1101 & 1100 = 1100 ≠ 0 → Not a power of two! ✓
+```
+
+### Implementation Code — C++
+
+```cpp
+bool isPowerOfTwo(int n) {
+    return n > 0 && (n & (n - 1)) == 0;
+}
+```
+
+---
+
+## Key Logic Summary / Important Points
+
+| Trick | Formula | Time | Use Case |
+|-------|---------|------|----------|
+| Swap without temp | `a^=b; b^=a; a^=b` | $O(1)$ | Memory-constrained environments |
+| Check i-th bit | `(n >> i) & 1` or `n & (1 << i)` | $O(1)$ | Bit inspection |
+| Set i-th bit | `n \| (1 << i)` | $O(1)$ | Enable a flag/option |
+| Clear i-th bit | `n & ~(1 << i)` | $O(1)$ | Disable a flag/option |
+| Toggle i-th bit | `n ^ (1 << i)` | $O(1)$ | Flip a flag/option |
+| Remove last set bit | `n & (n - 1)` | $O(1)$ | Count/set bits, power of two check |
+| Power of two | `n > 0 && (n & (n-1)) == 0` | $O(1)$ | Quick validation |
+
+### Common Pitfalls
+
+- **Shifting by ≥ 32 on a 32-bit int** is undefined behavior in C/C++ — always validate shift amounts
+- **NOT operator with negative numbers**: `~x = -(x+1)`, so be careful when using it as a mask
+- **Left shift overflow**: `1 << 31` on a signed 32-bit int overflows (undefined behavior). Use `(unsigned int)1 << i` or `1LL << i` for safety
+- **n & (n-1) = 0** only works for powers of two when n > 0. Zero is not a power of two!
+
+### See Also
+
+- [Counting Set Bits](./count-set-bits) — Uses the "remove last set bit" trick extensively
+- [Single Number I](./single-number-i) — Uses XOR swap concept (XOR cancellation property)
+- [Minimum Bit Flips](./minimum-bit-flips) — Uses XOR to find differing bits

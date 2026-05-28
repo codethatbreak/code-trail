@@ -1,0 +1,17 @@
+{
+  "pages": [
+    "index",
+    "bitwise-operators",
+    "complement-representation",
+    "bit-manipulation-tricks",
+    "count-set-bits",
+    "minimum-bit-flips",
+    "power-set-bit-manipulation",
+    "single-number-i",
+    "single-number-ii",
+    "single-number-iii",
+    "xor-range",
+    "divide-two-integers",
+    "problem-set-1"
+  ]
+}
