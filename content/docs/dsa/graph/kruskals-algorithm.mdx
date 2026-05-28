@@ -2,7 +2,9 @@
 title: Kruskal's Algorithm
 ---
 
-**Kruskal’s Algorithm** is a popular method for finding the **Minimum Spanning Tree (MST)** of a given graph. Unlike Prim's algorithm, which grows the MST from a single starting node, Kruskal's is an edge-based approach that utilizes the **Disjoint Set Union (DSU)** data structure.
+**Kruskal's Algorithm** is a popular method for finding the **Minimum Spanning Tree (MST)** of a given graph. Unlike [Prim's Algorithm](./mst), which grows the MST from a single starting node, Kruskal's is an edge-based approach that utilizes the **Disjoint Set Union (DSU)** data structure.
+
+See also: [Disjoint Set (DSU)](./dsu)
 
 ### Core Objective
 
@@ -29,8 +31,8 @@ int spanningTree(int V, vector<vector<int>> adj[]) {
     vector<pair<int, pair<int, int>>> edges;
     for (int i = 0; i < V; i++) {
         for (auto it : adj[i]) {
-            int adjNode = it;
-            int wt = it;
+            int adjNode = it[0];
+            int wt = it[1];
             edges.push_back({wt, {i, adjNode}});
         }
     }

@@ -1,0 +1,51 @@
+---
+title: Johnson's Algorithm
+---
+
+See also: [Bellman-Ford](./bellman-ford) · [Dijkstra's Algorithm](./dijkstra-priority-queue) · [Floyd-Warshall](./floyd-warshall)
+
+### Overview
+
+**Johnson's Algorithm** solves the **all-pairs shortest path** problem for **sparse graphs with negative edge weights**. It combines:
+1. **Bellman-Ford** to reweight edges (eliminate negatives).
+2. **Dijkstra** run from each node on the reweighted graph.
+
+It is more efficient than Floyd-Warshall ($O(V^3)$) for sparse graphs, achieving $O(V \cdot E \log V)$.
+
+### Why Johnson's?
+
+- **Floyd-Warshall:** Works with negative weights but is $O(V^3)$ — slow for large graphs.
+- **Dijkstra alone:** Cannot handle negative edge weights.
+- **Johnson's:** Handles negative weights efficiently on sparse graphs by reweighting + running Dijkstra from each node.
+
+### Algorithm Steps
+
+1. **Add a new source node `s`** connected to all vertices with weight 0.
+2. **Run Bellman-Ford** from `s` to compute $h(v)$ = shortest distance from `s` to each vertex $v$.
+   - If a negative cycle is detected, the algorithm terminates (no valid shortest paths exist).
+3. **Reweight edges:** For each edge $(u, v)$ with weight $w$, compute:
+   $$w'(u, v) = w(u, v) + h(u) - h(v)$$
+   This ensures all new weights are non-negative while preserving shortest path structure.
+4. **Run Dijkstra** from every vertex using the reweighted edges to get all-pairs shortest paths.
+5. **Unweight results:** For each pair $(i, j)$, the actual distance is:
+   $$dist(i, j) = dist'(i, j) - h(i) + h(j)$$
+
+### Key Property of Reweighting
+
+The reweighting $w'(u,v) = w(u,v) + h(u) - h(v)$ ensures:
+- All $w' \geq 0$ (proven using Bellman-Ford optimality conditions).
+- The shortest path between any two nodes remains unchanged.
+
+### Complexity Analysis
+
+- **Time Complexity:** $O(V \cdot E + V \cdot E \log V) = O(V \cdot E \log V)$ — one Bellman-Ford ($O(VE)$) plus $V$ Dijkstra runs.
+- **Space Complexity:** $O(V^2)$ — for the all-pairs distance matrix.
+
+### When to Use Johnson's vs. Floyd-Warshall
+
+| Graph Type | Recommended Algorithm |
+|-----------|----------------------|
+| Dense graph, no negative weights | Floyd-Warshall or $V$ Dijkstra runs |
+| Sparse graph, no negative weights | $V$ Dijkstra runs |
+| Sparse graph, with negative weights (no negative cycles) | **Johnson's Algorithm** |
+| Any graph with negative cycles | No valid shortest paths exist |

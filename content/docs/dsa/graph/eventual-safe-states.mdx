@@ -1,53 +1,133 @@
 ---
-title: Find Eventual Safe States
+title: Eventual Safe States
 ---
 
-### Core Definitions
+### Problem Statement
 
-- **Terminal Node:** A node is terminal if it has **no outgoing edges**.
-- **Safe Node:** A node is safe if **every possible path** starting from it leads to a terminal node.
-- **The Goal:** Return an array of all safe nodes, sorted in **ascending order**.
+Given a directed graph with $V$ nodes, find all **safe nodes** and return them in **sorted ascending order**.
 
-### Intuition: Working Backwards
+- A node is **terminal** if it has no outgoing edges (out-degree = 0).
+- A node is **safe** if every possible path starting from it eventually leads to a terminal node.
+- Any node that is part of a cycle or leads to a cycle is **unsafe**.
 
-The BFS approach (Kahn's Algorithm) typically identifies nodes with an in-degree of 0. However, safe nodes are defined by their **out-degree** (specifically, leading to terminal nodes).
+### Core Intuition: The Cycle Connection
 
-- To bridge this gap, the algorithm **reverses all edges** in the graph.
-- By reversing the edges, a terminal node (out-degree 0) becomes a node with an **in-degree of 0**.
-- Starting from these terminal nodes, the algorithm "backtracks" to find nodes that only lead to safe nodes.
+The problem is essentially a variation of **cycle detection** in a directed graph:
 
-### The BFS (Topological Sort) Algorithm
+- **Cycles are Unsafe:** Any node that is part of a cycle can never be safe because it has at least one path that loops infinitely.
+- **Leading to Cycles is Unsafe:** Any node with a path leading into a cycle is also unsafe.
+- **The Safe Condition:** Any node that is not part of a cycle and does not lead to a cycle will eventually reach a terminal node.
 
-1.  **Reverse the Graph:** Create a new adjacency list where every edge $u \to v$ is converted to $v \to u$.
-2.  **Calculate In-degrees:** Determine the in-degree for every node in the **reversed graph**.
-3.  **Initial Queue:** Push all nodes that have an in-degree of 0 in the reversed graph (these were the original terminal nodes) into a queue.
-4.  **BFS Process:**
-    - While the queue is not empty, pop a node.
-    - This node is a **safe node**; add it to your result list.
-    - For every neighbor of this node in the reversed graph, **reduce its in-degree**.
-    - If a neighbor's in-degree **becomes 0**, it means all its original outgoing paths now lead to confirmed safe nodes. Push it into the queue.
-5.  **Final Step:** Since the queue processes nodes in a randomized order, **sort the result list** in ascending order before returning it.
+---
 
-### Implementation Code
+## Approach 1: DFS (Cycle Detection)
 
-#### C++ Implementation
+This approach uses the standard directed graph cycle detection logic with an additional array to mark safe nodes.
+
+### Data Structures Required
+
+1. **Visited Array (`vis`):** Tracks if a node has been explored during the entire traversal.
+2. **Path Visited Array (`pathVis`):** Tracks if a node is currently in the active recursion stack (the current path).
+3. **Check Array (`check`):** Marks which nodes are confirmed as safe nodes.
+
+### Step-by-Step Process
+
+1. Initialize `vis`, `pathVis`, and `check` arrays to 0.
+2. Iterate through every node (0 to $V-1$) to handle multiple components. If a node is unvisited, call the DFS function.
+3. **Inside the DFS function for a node:**
+   - Mark the node as visited and path visited.
+   - Initially assume the node might be part of a cycle (keep `check` status as 0).
+   - Iterate through all neighbors:
+     - If unvisited: Recursively call DFS. If it returns `true` (cycle found), return `true`.
+     - If already path visited: A cycle is detected — return `true`.
+   - If no cycle was found, mark the node as safe in the check array.
+   - Unmark path visited and return `false`.
+4. Collect all nodes marked as 1 in the check array.
+
+### Implementation Code (C++)
+
+```cpp
+bool dfsCheck(int node, vector<int> adj[], int vis[], int pathVis[], int check[]) {
+    vis[node] = 1;
+    pathVis[node] = 1;
+    check[node] = 0; // Initially assume unsafe
+
+    for (auto it : adj[node]) {
+        if (!vis[it]) {
+            if (dfsCheck(it, adj, vis, pathVis, check)) return true;
+        }
+        else if (pathVis[it]) {
+            return true;
+        }
+    }
+
+    check[node] = 1; // Mark as safe
+    pathVis[node] = 0; // Backtrack
+    return false;
+}
+
+vector<int> eventualSafeNodes(int V, vector<int> adj[]) {
+    int vis[V] = {0}, pathVis[V] = {0}, check[V] = {0};
+    vector<int> safeNodes;
+
+    for (int i = 0; i < V; i++) {
+        if (!vis[i]) {
+            dfsCheck(i, adj, vis, pathVis, check);
+        }
+    }
+
+    for (int i = 0; i < V; i++) {
+        if (check[i] == 1) safeNodes.push_back(i);
+    }
+    return safeNodes;
+}
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** $O(V + E)$ — standard DFS traversal.
+- **Space Complexity:** $O(N)$ — for `vis`, `pathVis`, and `check` arrays plus recursion stack.
+
+---
+
+## Approach 2: BFS (Reverse Graph / Kahn's Algorithm)
+
+This approach works backwards from terminal nodes using the reversed graph. See also: [Kahn's Algorithm](./kahns-algorithm) for the topological sort foundation.
+
+### Intuition
+
+- Terminal nodes have out-degree 0. By **reversing all edges**, they become nodes with in-degree 0.
+- Starting BFS from these nodes, we "backtrack" to find nodes that only lead to safe nodes.
+
+### Algorithm Steps
+
+1. **Reverse the Graph:** Create `adjRev` where every edge $u \to v$ becomes $v \to u$.
+2. **Calculate In-degrees** in the reversed graph.
+3. **Initial Queue:** Push all nodes with in-degree 0 (original terminal nodes).
+4. **BFS Process:** Pop a node, add to result. For each neighbor in reversed graph, reduce its in-degree. If it becomes 0, push to queue.
+5. **Sort** the result in ascending order before returning.
+
+### Implementation Code (C++)
 
 ```cpp
 vector<int> eventualSafeNodes(int V, vector<int> adj[]) {
     vector<int> adjRev[V];
     int indegree[V] = {0};
+
     // 1. Reverse the graph and calculate in-degrees
     for (int i = 0; i < V; i++) {
         for (auto it : adj[i]) {
-            adjRev[it].push_back(i); // it -> i
+            adjRev[it].push_back(i);
             indegree[i]++;
         }
     }
-    // 2. Initial Queue
+
+    // 2. Initial Queue with terminal nodes
     queue<int> q;
     for (int i = 0; i < V; i++) {
         if (indegree[i] == 0) q.push(i);
     }
+
     // 3. BFS
     vector<int> safeNodes;
     while (!q.empty()) {
@@ -58,6 +138,7 @@ vector<int> eventualSafeNodes(int V, vector<int> adj[]) {
             if (indegree[it] == 0) q.push(it);
         }
     }
+
     // 4. Sort the result
     sort(safeNodes.begin(), safeNodes.end());
     return safeNodes;
@@ -66,13 +147,16 @@ vector<int> eventualSafeNodes(int V, vector<int> adj[]) {
 
 ### Complexity Analysis
 
-- **Time Complexity:** **$O(V + E) + O(V \log V)$**.
-  - $O(V + E)$ covers reversing the graph and the standard BFS traversal.
-  - $O(V \log V)$ is required for the final sorting of the safe nodes.
-- **Space Complexity:** **$O(V + E)$**.
-  - This is slightly higher than the DFS method because of the **additional space** needed to store the reversed graph.
+- **Time Complexity:** $O(V + E) + O(V \log V)$ — BFS traversal plus sorting.
+- **Space Complexity:** $O(V + E)$ — for the reversed graph adjacency list.
 
-### BFS vs. DFS Comparison
+---
 
-- **DFS:** Uses cycle detection and identifies nodes that are not part of or leading to a cycle. It is generally more space-efficient because it doesn't require reversing the graph.
-- **BFS:** Uses the topological sort principle on a reversed graph. It is a more "tracing back" or "backtracking" method starting from terminal nodes.
+## DFS vs. BFS Comparison
+
+| Aspect | DFS Approach | BFS Approach |
+|--------|-------------|-------------|
+| **Core Idea** | Cycle detection | Reverse graph topological sort |
+| **Space** | $O(N)$ — no graph reversal needed | $O(V + E)$ — requires reversed graph |
+| **Intuition** | "No cycle = safe" | "Start from terminal, work backwards" |
+| **Best For** | Space-constrained scenarios | When you already have Kahn's implementation |

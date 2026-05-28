@@ -2,7 +2,9 @@
 title: Detect Cycle in Direct Graph Topological Sort
 ---
 
-### Core intuition
+### Core Intuition
+
+See also: [Topological Sort (DFS)](./topological-sort) · [Kahn's Algorithm](./kahns-algorithm) · [Detect Cycle in Directed Graph (DFS)](./detect-cycle-directed-dfs)
 
 - **DAG Requirement:** A topological sort is only possible for a **Directed Acyclic Graph (DAG)**.
 - **The Logic of Failure:** If a directed graph contains a **cycle**, it is impossible to generate a topological sort that includes all $N$ vertices. In a cycle, nodes have circular dependencies, meaning their in-degrees will never drop to zero during the standard Kahn's process.

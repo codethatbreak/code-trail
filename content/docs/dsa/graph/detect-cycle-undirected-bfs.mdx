@@ -4,6 +4,8 @@ title: Detect Cycle in Undirected Graph Using BFS
 
 ### Concept and Intuition
 
+See also: [Detect Cycle in Undirected Graph (DFS)](./detect-cycle-undirected-dfs) · [Bipartite Graph](./bipartite-graph)
+
 - **Definition of a Cycle:** A cycle exists in a graph if you can start from a specific node, traverse through other nodes, and eventually return to that same starting node.
 - **The BFS Collision Logic:** BFS is a level-wise traversal technique. The intuition for cycle detection is that if you start a traversal and follow different paths that eventually "collide" at the same node, a cycle must exist.
 - **The "Parent" Node Challenge:** In an undirected graph, every edge is bi-directional. If you move from node 1 to node 2, node 2 will naturally list node 1 as a neighbor. This back-and-forth movement is **not** a cycle.

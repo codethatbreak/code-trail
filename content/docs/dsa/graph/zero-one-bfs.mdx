@@ -1,0 +1,64 @@
+---
+title: 0-1 BFS (Deque-Based Shortest Path)
+---
+
+See also: [Shortest Path in Undirected Graph with Unit Weights](./shortest-path-undirected-unit-weight) · [Dijkstra's Algorithm](./dijkstra-priority-queue)
+
+### When to Use 0-1 BFS
+
+When edge weights are only **0 or 1**, you can find shortest paths faster than Dijkstra using a **deque (double-ended queue)**. This is essentially BFS optimized for binary weights.
+
+### Core Idea
+
+- If the edge weight is **1**: push to the **back** of the deque (process later, like normal BFS).
+- If the edge weight is **0**: push to the **front** of the deque (process immediately, since it gives a shorter path).
+
+This maintains the invariant that nodes in the deque are always sorted by distance.
+
+### Algorithm Steps
+
+1. Initialize `dist[]` with infinity, set `dist[source] = 0`.
+2. Push `source` to the front of the deque.
+3. While deque is not empty:
+   - Pop from the **front**.
+   - For each neighbor with edge weight 0: if `dist[neighbor] > dist[node]`, update and push to **front**.
+   - For each neighbor with edge weight 1: if `dist[neighbor] > dist[node] + 1`, update and push to **back**.
+
+### Implementation Code (C++)
+
+```cpp
+vector<int> zeroOneBFS(int V, vector<pair<int, int>> adj[], int source) {
+    vector<int> dist(V, INT_MAX);
+    deque<int> dq;
+
+    dist[source] = 0;
+    dq.push_front(source);
+
+    while (!dq.empty()) {
+        int node = dq.front();
+        dq.pop_front();
+
+        for (auto [neighbor, weight] : adj[node]) {
+            if (dist[neighbor] > dist[node] + weight) {
+                dist[neighbor] = dist[node] + weight;
+                if (weight == 0) {
+                    dq.push_front(neighbor);
+                } else {
+                    dq.push_back(neighbor);
+                }
+            }
+        }
+    }
+
+    return dist;
+}
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** $O(V + E)$ — each node is pushed at most twice (once to front, once to back), and each edge is processed once.
+- **Space Complexity:** $O(V)$ — for distance array and deque.
+
+### Why Not Dijkstra?
+
+Dijkstra with a priority queue gives $O(E \log V)$. For 0-1 weights, 0-1 BFS achieves $O(V + E)$ — strictly faster. This is because the deque maintains nodes in sorted order naturally, eliminating the need for logarithmic heap operations.

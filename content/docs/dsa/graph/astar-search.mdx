@@ -1,0 +1,104 @@
+---
+title: A* Search Algorithm
+---
+
+See also: [Dijkstra's Algorithm](./dijkstra-priority-queue) · [0-1 BFS](./zero-one-bfs)
+
+### Overview
+
+**A\*** (A-Star) is a pathfinding algorithm that uses **heuristics** to find the shortest path more efficiently than Dijkstra. It combines:
+
+- **g(n):** The actual cost from start to node `n`.
+- **h(n):** The heuristic estimate of cost from node `n` to the goal.
+- **f(n) = g(n) + h(n):** The total estimated cost.
+
+### When to Use A*
+
+A* is ideal when:
+- You have a **specific target/destination** (not all-pairs shortest path).
+- You can define a **valid heuristic** (admissible — never overestimates the true cost).
+- Common in game development, robotics, and GPS navigation.
+
+### Heuristic Requirements
+
+The heuristic must be:
+1. **Admissible:** Never overestimates the true cost to reach the goal.
+2. **Consistent (monotone):** For every neighbor `n'` of `n`: `h(n) <= cost(n, n') + h(n')`.
+
+Common heuristics for grid graphs:
+- **Manhattan distance:** $|x_1 - x_2| + |y_1 - y_2|$ (for 4-directional movement).
+- **Euclidean distance:** $\sqrt{(x_1-x_2)^2 + (y_1-y_2)^2}$ (for continuous space).
+- **Chebyshev distance:** $\max(|x_1-x_2|, |y_1-y_2|)$ (for 8-directional movement).
+
+### Algorithm Steps
+
+1. Initialize `g[start] = 0`, push `{f(start), start}` into a min-priority queue.
+2. While the priority queue is not empty:
+   - Pop the node with the **lowest f(n)**.
+   - If it's the goal, reconstruct and return the path.
+   - For each neighbor:
+     - Calculate `tentative_g = g(current) + cost(current, neighbor)`.
+     - If `tentative_g < g(neighbor)`: update `g`, set `f = g + h`, push to PQ.
+3. If queue empties without reaching the goal, no path exists.
+
+### Implementation Code (C++)
+
+```cpp
+struct Node {
+    int x, y;
+    bool operator>(const Node& other) const {
+        return true; // compared via f-score in priority_queue
+    }
+};
+
+int heuristic(int x1, int y1, int x2, int y2) {
+    return abs(x1 - x2) + abs(y1 - y2); // Manhattan distance
+}
+
+vector<pair<int, int>> astar(vector<vector<int>>& grid, pair<int, int> start, pair<int, int> goal) {
+    int rows = grid.size(), cols = grid[0].size();
+    priority_queue<Node, vector<Node>, greater<Node>> pq; // simplified: use f-score as key
+    unordered_map<string, int> gScore;
+
+    auto key = [&](int x, int y) { return to_string(x) + "," + to_string(y); };
+
+    gScore[key(start.first, start.second)] = 0;
+    pq.push({start.first, start.second}); // In practice, store f-score as well
+
+    while (!pq.empty()) {
+        Node current = pq.top(); pq.pop();
+
+        if (current.x == goal.first && current.y == goal.second) {
+            return reconstructPath(current, gScore);
+        }
+
+        for (auto [dx, dy] : directions) {
+            int nx = current.x + dx, ny = current.y + dy;
+            if (nx >= 0 && nx < rows && ny >= 0 && ny < cols && grid[nx][ny] == 0) {
+                int tentG = gScore[key(current.x, current.y)] + 1;
+                if (gScore.find(key(nx, ny)) == gScore.end() || tentG < gScore[key(nx, ny)]) {
+                    gScore[key(nx, ny)] = tentG;
+                    int fScore = tentG + heuristic(nx, ny, goal.first, goal.second);
+                    pq.push({nx, ny}); // In practice, push with f-score priority
+                }
+            }
+        }
+    }
+
+    return {}; // No path found
+}
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** $O(E \log V)$ in the worst case (same as Dijkstra), but typically much faster due to heuristic guidance.
+- **Space Complexity:** $O(V)$ — for storing g-scores and the priority queue.
+
+### A* vs. Dijkstra Comparison
+
+| Aspect | A* | Dijkstra |
+|--------|----|----------|
+| **Goal-directed** | Yes (uses heuristic) | No (explores all directions) |
+| **Speed** | Faster with good heuristic | Slower for single-target paths |
+| **Optimality** | Optimal if heuristic is admissible | Always optimal |
+| **Use case** | Single source to target | Single source to all nodes |

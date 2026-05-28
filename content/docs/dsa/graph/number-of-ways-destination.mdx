@@ -4,7 +4,7 @@ title: Number of Ways to Arrive at Destination
 
 ### Problem Overview
 
-- **The Goal:** Given an undirected graph with $n$ intersections (nodes 0 to $n-1$) and roads with travel times (weights), find the number of ways you can travel from the **source (0)** to the **destination ($n-1$)** in the **shortest amount of time**,.
+- **The Goal:** Given an undirected graph with $n$ intersections (nodes 0 to $n-1$) and roads with travel times (weights), find the number of ways you can travel from the **source (0)** to the **destination ($n-1$)** in the **shortest amount of time**.
 - **Key Insight:** The problem is not asking for the shortest path distance, but rather the **count of all unique paths** that yield that minimum distance.
 - **Modulo Requirement:** Since the number of paths can be large, the result must be returned modulo $10^9 + 7$.
 
@@ -21,9 +21,9 @@ This solution uses a **Priority Queue (Min-Heap)** to explore nodes level-wise b
 
 #### **Initial Configuration**
 
-1.  **Distance Array (`dist`):** Initialise all nodes to infinity, except the source: `dist = 0`,.
-2.  **Ways Array (`ways`):** Initialise all nodes to 0, except the source: `ways = 1` (there is only one way to start at the source),.
-3.  **Priority Queue (`pq`):** Push `{0, 0}` (representing `{distance, node}`) into the queue,.
+1.  **Distance Array (`dist`):** Initialise all nodes to infinity, except the source: `dist = 0`.
+2.  **Ways Array (`ways`):** Initialise all nodes to 0, except the source: `ways = 1` (there is only one way to start at the source).
+3.  **Priority Queue (`pq`):** Push `{0, 0}` (representing `{distance, node}`) into the queue.
 
 #### **Relaxation Logic**
 
@@ -32,7 +32,7 @@ For every neighbor (`adjNode`) of the current node:
 - **Case 1: A Shorter Path is Found**
   If `current_dist + edge_weight < dist[adjNode]`:
   - Update `dist[adjNode]` with the new shorter distance.
-  - **Inherit the ways:** Set `ways[adjNode]` equal to `ways[node]` because all the shortest paths that reached the current node can now reach the neighbor,.
+  - **Inherit the ways:** Set `ways[adjNode]` equal to `ways[node]` because all the shortest paths that reached the current node can now reach the neighbor.
   - Push the new distance and `adjNode` into the `pq`.
 - **Case 2: Another Path with the Same Shortest Distance is Found**
   If `current_dist + edge_weight == dist[adjNode]`:

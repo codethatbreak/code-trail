@@ -4,6 +4,8 @@ title: Detect Cycle in Directed Graph Using DFS
 
 ### Concept and Intuition
 
+See also: [Detect Cycle in Undirected Graph (DFS)](./detect-cycle-undirected-dfs) · [Detect Cycle via Topological Sort](./detect-cycle-topological-sort)
+
 - **Definition of a Cycle:** In a directed graph, a cycle exists only if you can start at a node and follow the **directed edges** to eventually reach that same node again.
 - **The "Same Path" Rule:** Unlike undirected graphs, simply reaching an already visited node does not guarantee a cycle. A cycle is only confirmed if a node is visited again **on the same path** (within the current recursion stack).
 - **Why Undirected Logic Fails:** In undirected graphs, you use a "parent" pointer to avoid going back to the immediate previous node. In directed graphs, if you reach a visited node that was part of a _different_ completed path, it is not a cycle; it is just a different route to the same node.
