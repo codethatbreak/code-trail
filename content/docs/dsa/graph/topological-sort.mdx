@@ -4,8 +4,10 @@ title: Topological Sort
 
 ### Definition and Prerequisites
 
-- Topological Sort: A linear ordering of vertices such that for every directed edge $u \to v$, node $u$ always appears before node $v$ in the ordering.
-- Directed Acyclic Graph (DAG): Topological sorting only exists for DAGs.
+- **Topological Sort:** A linear ordering of vertices such that for every directed edge $u \to v$, node $u$ always appears before node $v$ in the ordering.
+- **Directed Acyclic Graph (DAG):** Topological sorting only exists for DAGs.
+
+See also: [Kahn's Algorithm (BFS approach)](./kahns-algorithm) · [Detect Cycle via Topological Sort](./detect-cycle-topological-sort)
   - **Why not Undirected?** In an undirected graph, an edge between 1 and 2 implies $1 \to 2$ and $2 \to 1$. It is impossible to have an ordering where 1 is before 2 and 2 is also before 1.
   - **Why not Cyclic?** Cycles create circular dependencies (e.g., $1 \to 2 \to 3 \to 1$). In such a case, 1 must be before 2, 2 before 3, and 3 before 1, which is logically impossible to represent linearly.
 

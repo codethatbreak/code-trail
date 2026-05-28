@@ -4,6 +4,8 @@ title: Kosaraju Algorithm
 
 ### Core Definitions
 
+See also: [Tarjan's SCC](./tarjan-scc) · [Bridge in Graph](./bridge-tarjan-algorithm)
+
 - **Strongly Connected Components (SCCs):** This concept is valid **only for directed graphs**. An SCC is a component where **every pair of vertices is reachable from each other**.
   - For example, in an SCC containing nodes 0, 1, and 2, you must be able to go from 0 to 1 and 1 back to 0, as well as between all other pairs.
   - A single node can also be its own SCC if it cannot reach other nodes in a bidirectional manner.

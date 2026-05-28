@@ -4,6 +4,8 @@ title: Alien Dictionary
 
 ### Problem Overview
 
+See also: [Topological Sort](./topological-sort) · [Kahn's Algorithm](./kahns-algorithm)
+
 The problem asks to find the character order in an alien language given $N$ sorted words and $K$ starting alphabets. While standard English dictionaries follow a fixed order (A to Z), this alien language has its own unique sequence that must be derived from the given sorted words. If the derived order is correct, the output is typically 1; otherwise, it is 0.
 
 ### Core Intuition: "Something Before Something"
@@ -51,7 +53,7 @@ string findOrder(string dict[], int N, int K) {
     // 3. Convert numbers back to string characters
     string ans = "";
     for (auto it : topo) {
-        ans = ans + (char)(it + 'a'); //
+        ans = ans + (char)(it + 'a');
     }
     return ans;
 }

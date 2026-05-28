@@ -1,0 +1,120 @@
+---
+title: Graph Coloring (k-Coloring)
+---
+
+See also: [Bipartite Graph (2-Coloring)](./bipartite-graph)
+
+### Overview
+
+**Graph coloring** assigns colors to vertices such that no two adjacent vertices share the same color. The **chromatic number** $\chi(G)$ is the minimum number of colors needed.
+
+This generalizes bipartite graph checking (which is 2-coloring). Here we explore k-coloring for arbitrary $k$.
+
+---
+
+## m-Coloring Problem
+
+Given a graph and $m$ colors, determine if the graph can be colored using at most $m$ colors such that no two adjacent vertices share the same color.
+
+### Approach: Backtracking (DFS)
+
+1. Assign colors one vertex at a time using DFS/backtracking.
+2. For each vertex, try all $m$ colors.
+3. Check if the current assignment is **safe** (no neighbor has the same color).
+4. If safe, recurse to the next vertex. If not, backtrack and try the next color.
+5. If all vertices are colored successfully, return `true`.
+
+### Implementation Code (C++)
+
+```cpp
+bool isSafe(int v, vector<vector<int>>& adj, vector<int>& color, int c) {
+    for (int neighbor : adj[v]) {
+        if (color[neighbor] == c) return false; // Conflict with adjacent vertex
+    }
+    return true;
+}
+
+bool graphColoringUtil(vector<vector<int>>& adj, vector<int>& color, int v, int m) {
+    if (v == adj.size()) return true; // All vertices colored successfully
+
+    for (int c = 1; c <= m; c++) {
+        if (isSafe(v, adj, color, c)) {
+            color[v] = c;
+            if (graphColoringUtil(adj, color, v + 1, m)) return true;
+            color[v] = 0; // Backtrack
+        }
+    }
+
+    return false; // No valid color found for vertex v
+}
+
+bool graphColoring(vector<vector<int>>& adj, int m) {
+    vector<int> color(adj.size(), 0);
+    return graphColoringUtil(adj, color, 0, m);
+}
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** $O(m^V)$ — in the worst case, we try all $m$ colors for each of $V$ vertices.
+- **Space Complexity:** $O(V)$ — for the color array and recursion stack.
+
+---
+
+## Special Cases
+
+### 2-Coloring (Bipartite Check)
+
+Already covered in [Bipartite Graph](./bipartite-graph). A graph is 2-colorable if and only if it has no odd-length cycles.
+
+### 3-Coloring
+
+NP-complete problem — no known polynomial-time algorithm exists for general graphs.
+
+### Upper Bound: Brooks' Theorem
+
+For any connected undirected graph $G$ with maximum degree $\Delta$:
+$$\chi(G) \leq \Delta$$
+with equality only if $G$ is a complete graph or an odd cycle, in which case $\chi(G) = \Delta + 1$.
+
+### Greedy Coloring Algorithm
+
+A simple greedy approach colors vertices in order, assigning each vertex the smallest available color not used by its already-colored neighbors:
+
+```cpp
+int greedyColoring(vector<vector<int>>& adj) {
+    int V = adj.size();
+    vector<int> result(V, -1);
+    vector<bool> colorUsed(V, false);
+
+    result[0] = 0; // Assign first color to first vertex
+
+    for (int u = 1; u < V; u++) {
+        fill(colorUsed.begin(), colorUsed.end(), false);
+
+        // Mark colors used by adjacent vertices
+        for (int v : adj[u]) {
+            if (result[v] != -1) {
+                colorUsed[result[v]] = true;
+            }
+        }
+
+        // Find the smallest available color
+        int c = 0;
+        while (colorUsed[c]) c++;
+        result[u] = c;
+    }
+
+    return *max_element(result.begin(), result.end()) + 1;
+}
+```
+
+- **Time Complexity:** $O(V^2 + E)$ — for each vertex, check all neighbors.
+- **Note:** The greedy algorithm may use more colors than optimal but runs in polynomial time.
+
+### Applications
+
+- **Scheduling:** Assign time slots (colors) to tasks where conflicts are edges.
+- **Map Coloring:** Adjacent regions must have different colors.
+- **Register Allocation:** In compilers, assign variables to CPU registers.
+- **Sudoku Solving:** A special case of graph coloring on a 9x9 grid.

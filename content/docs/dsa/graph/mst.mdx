@@ -1,6 +1,8 @@
 ---
-title: Minimum Spanning Tree
+title: Prim's Algorithm for MST
 ---
+
+See also: [Kruskal's Algorithm](./kruskals-algorithm) · [Disjoint Set (DSU)](./dsu)
 
 ### Understanding the Spanning Tree
 
@@ -73,8 +75,8 @@ int spanningTree(int V, vector<vector<int>> adj[]) {
 
         // Explore adjacent nodes
         for (auto iter : adj[node]) {
-            int adjNode = iter;
-            int edW = iter;
+            int adjNode = iter[0];
+            int edW = iter[1];
             if (!vis[adjNode]) {
                 pq.push({edW, adjNode});
             }

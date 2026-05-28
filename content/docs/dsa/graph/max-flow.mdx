@@ -1,0 +1,111 @@
+---
+title: Max Flow (Ford-Fulkerson / Edmonds-Karp)
+---
+
+See also: [Minimum Spanning Tree](./mst) · [Kruskal's Algorithm](./kruskals-algorithm)
+
+### Overview
+
+The **Maximum Flow** problem asks: given a flow network with a source `s` and sink `t`, what is the maximum amount of "flow" (water, data, traffic) that can be sent from `s` to `t`?
+
+Each edge has a **capacity** — the maximum flow it can carry. Flow through an edge cannot exceed its capacity.
+
+### Key Concepts
+
+- **Residual Graph:** Shows remaining capacity on each edge after some flow has been pushed.
+- **Augmenting Path:** A path from `s` to `t` in the residual graph where more flow can be pushed.
+- **Min-Cut Max-Flow Theorem:** The maximum flow equals the minimum cut (minimum total capacity of edges whose removal disconnects `s` from `t`).
+
+---
+
+## Ford-Fulkerson Method
+
+A general method that repeatedly finds augmenting paths and pushes flow along them until no more exist.
+
+### Algorithm Steps
+
+1. Initialize flow on all edges to 0.
+2. Find an augmenting path from `s` to `t` in the residual graph (using BFS or DFS).
+3. Find the **bottleneck capacity** (minimum residual capacity) along this path.
+4. Push flow equal to the bottleneck along the path:
+   - Decrease forward edge capacities.
+   - Increase backward edge capacities (to allow "undoing" flow).
+5. Repeat until no augmenting path exists.
+
+### Implementation Code (Edmonds-Karp — BFS-based Ford-Fulkerson)
+
+```cpp
+int bfs(vector<vector<int>>& capacity, vector<vector<int>>& flow, int s, int t, vector<int>& parent) {
+    int V = capacity.size();
+    vector<bool> visited(V, false);
+    fill(parent.begin(), parent.end(), -1);
+    queue<int> q;
+    q.push(s);
+    visited[s] = true;
+
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        for (int v = 0; v < V; v++) {
+            if (!visited[v] && capacity[u][v] - flow[u][v] > 0) {
+                parent[v] = u;
+                visited[v] = true;
+                if (v == t) return 1;
+                q.push(v);
+            }
+        }
+    }
+    return 0; // No augmenting path found
+}
+
+int maxFlow(vector<vector<int>>& capacity, int s, int t) {
+    int V = capacity.size();
+    vector<vector<int>> flow(V, vector<int>(V, 0));
+    int maxFlow = 0;
+    vector<int> parent(V);
+
+    while (bfs(capacity, flow, s, t, parent)) {
+        // Find bottleneck
+        int pathFlow = INT_MAX;
+        for (int v = t; v != s; v = parent[v]) {
+            int u = parent[v];
+            pathFlow = min(pathFlow, capacity[u][v] - flow[u][v]);
+        }
+
+        // Update residual capacities
+        for (int v = t; v != s; v = parent[v]) {
+            int u = parent[v];
+            flow[u][v] += pathFlow;
+            flow[v][u] -= pathFlow;
+        }
+
+        maxFlow += pathFlow;
+    }
+
+    return maxFlow;
+}
+```
+
+### Complexity Analysis (Edmonds-Karp)
+
+- **Time Complexity:** $O(V \cdot E^2)$ — each BFS takes $O(E)$, and at most $O(VE)$ augmentations occur.
+- **Space Complexity:** $O(V^2)$ — for capacity and flow matrices.
+
+---
+
+## Dinic's Algorithm (Faster Alternative)
+
+Dinic's algorithm improves on Edmonds-Karp by using **level graphs** and **blocking flows**:
+
+1. Build a level graph using BFS (shortest distance from `s` in residual graph).
+2. Find blocking flows in the level graph using DFS.
+3. Repeat until no augmenting path exists.
+
+- **Time Complexity:** $O(V^2 \cdot E)$ — faster than Edmonds-Karp for most graphs.
+- **For unit capacity networks:** $O(E \cdot \min(V^{2/3}, E^{1/2}))$.
+
+### Applications
+
+- Network routing and traffic optimization.
+- Bipartite matching (reduces to max flow).
+- Image segmentation in computer vision.
+- Project selection problems.

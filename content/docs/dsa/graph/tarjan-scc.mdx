@@ -1,0 +1,94 @@
+---
+title: Tarjan's Strongly Connected Components
+---
+
+See also: [Kosaraju's Algorithm](./kosaraju-algorithm) · [Bridge in Graph](./bridge-tarjan-algorithm)
+
+### What are SCCs?
+
+A **Strongly Connected Component (SCC)** is a maximal subgraph of a directed graph where every vertex is reachable from every other vertex within the subgraph. Tarjan's algorithm finds all SCCs in a single DFS pass.
+
+### Core Idea
+
+Tarjan's algorithm uses two arrays and a stack:
+
+- **`tin[]` (Time of Insertion):** The discovery time when a node is first visited during DFS.
+- **`low[]` (Lowest Discovery Time):** The lowest `tin` reachable from the node (including through back-edges in the DFS tree).
+- **Stack:** Tracks nodes currently in the recursion stack (part of the current potential SCC).
+
+### Algorithm Steps
+
+1. Perform DFS, tracking `tin` and `low` for each node using a global timer.
+2. For each unvisited neighbor:
+   - Recursively call DFS.
+   - After returning, update `low[u] = min(low[u], low[v])`.
+3. For each already-visited (back-edge) neighbor, update `low[u] = min(low[u], tin[v])`.
+4. **SCC Detection:** If `low[u] == tin[u]` after processing all neighbors, `u` is the root of an SCC. Pop nodes from the stack until `u` is popped — all popped nodes form one SCC.
+
+### Implementation Code (C++)
+
+```cpp
+int timer;
+vector<int> tin, low;
+vector<bool> inStack;
+stack<int> st;
+vector<vector<int>> sccs;
+
+void dfs(int u, vector<int> adj[]) {
+    tin[u] = low[u] = ++timer;
+    st.push(u);
+    inStack[u] = true;
+
+    for (int v : adj[u]) {
+        if (tin[v] != -1) {
+            // v is already visited (back-edge)
+            if (inStack[v]) {
+                low[u] = min(low[u], tin[v]);
+            }
+        } else {
+            // v is unvisited (tree-edge)
+            dfs(v, adj);
+            low[u] = min(low[u], low[v]);
+        }
+    }
+
+    // u is the root of an SCC
+    if (low[u] == tin[u]) {
+        vector<int> scc;
+        while (true) {
+            int v = st.top(); st.pop();
+            inStack[v] = false;
+            scc.push_back(v);
+            if (u == v) break;
+        }
+        sccs.push_back(scc);
+    }
+}
+
+vector<vector<int>> tarjanSCC(int V, vector<int> adj[]) {
+    timer = 0;
+    tin.assign(V, -1);
+    low.assign(V, -1);
+    inStack.assign(V, false);
+
+    for (int i = 0; i < V; i++) {
+        if (tin[i] == -1) dfs(i, adj);
+    }
+
+    return sccs;
+}
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** $O(V + E)$ — single DFS traversal.
+- **Space Complexity:** $O(V)$ — for `tin`, `low`, `inStack`, and stack.
+
+### Tarjan's vs. Kosaraju's
+
+| Aspect | Tarjan's Algorithm | Kosaraju's Algorithm |
+|--------|-------------------|---------------------|
+| **Passes** | 1 DFS pass | 2 DFS passes + graph reversal |
+| **Complexity** | $O(V + E)$ | $O(V + E)$ |
+| **Implementation** | Slightly more complex (uses `low`/`tin`) | Simpler conceptually |
+| **Space** | $O(V)$ | $O(V + E)$ for reversed graph |

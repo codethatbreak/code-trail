@@ -1,8 +1,10 @@
 ---
-title: World Ladder 2
+title: Word Ladder II
 ---
 
 ### Problem Objective
+
+See also: [Word Ladder I](./word-ladder-i) · [BFS](./breadth-first-search)
 
 - Given a `startWord`, a `targetWord`, and a `wordList`, find **every sequence** that represents the shortest path from the start to the target.
 - Each step in a sequence must involve changing exactly one character, and the resulting word must exist in the word list.
@@ -86,7 +88,7 @@ vector<vector<string>> findSequences(string beginWord, string endWord, vector<st
             word[i] = original;
         }
     }
-    return ans; //
+    return ans;
 }
 ```
 

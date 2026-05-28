@@ -1,0 +1,91 @@
+---
+title: Iterative DFS
+---
+
+See also: [Depth First Search (Recursive)](./depth-first-search) · [Breadth First Search](./breadth-first-search)
+
+### Why Iterative DFS?
+
+The recursive DFS implementation uses the system call stack, which has a limited size. For very deep graphs (e.g., $10^5$ nodes in a line), this can cause a **stack overflow**. The iterative approach using an explicit `std::stack` avoids this limitation.
+
+### Algorithm
+
+1. Push the starting node onto a stack and mark it as visited.
+2. While the stack is not empty:
+   - Pop the top node and add it to the result.
+   - Push all unvisited neighbors onto the stack (in reverse order if you want to maintain the same traversal order as recursive DFS).
+3. Continue until the stack is empty.
+
+### Key Difference from Recursive DFS
+
+- **Recursive DFS** explores one path completely before backtracking (depth-first).
+- **Iterative DFS** with a stack also achieves depth-first traversal, but the order of visiting neighbors may differ depending on push order. To match recursive DFS exactly, push neighbors in **reverse order**.
+
+### Implementation Code (C++)
+
+```cpp
+vector<int> iterativeDFS(int V, vector<int> adj[]) {
+    vector<int> dfs;
+    vector<int> vis(V, 0);
+    stack<int> st;
+
+    // Start from node 0
+    st.push(0);
+    vis[0] = 1;
+
+    while (!st.empty()) {
+        int node = st.top();
+        st.pop();
+        dfs.push_back(node);
+
+        // Push neighbors in reverse order to maintain same traversal as recursive DFS
+        for (auto it : adj[node]) {
+            if (!vis[it]) {
+                vis[it] = 1;
+                st.push(it);
+            }
+        }
+    }
+
+    return dfs;
+}
+```
+
+### Handling Multiple Components
+
+For disconnected graphs, wrap the iterative DFS in a loop:
+
+```cpp
+vector<int> allDFS(int V, vector<int> adj[]) {
+    vector<int> dfs;
+    vector<int> vis(V, 0);
+
+    for (int i = 0; i < V; i++) {
+        if (!vis[i]) {
+            stack<int> st;
+            st.push(i);
+            vis[i] = 1;
+
+            while (!st.empty()) {
+                int node = st.top();
+                st.pop();
+                dfs.push_back(node);
+
+                for (auto it : adj[node]) {
+                    if (!vis[it]) {
+                        vis[it] = 1;
+                        st.push(it);
+                    }
+                }
+            }
+        }
+    }
+
+    return dfs;
+}
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** $O(V + E)$ — same as recursive DFS. Every node and edge is processed once.
+- **Space Complexity:** $O(V)$ — for the visited array and explicit stack (worst case: all nodes on stack).
